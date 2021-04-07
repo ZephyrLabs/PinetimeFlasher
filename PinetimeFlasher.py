@@ -93,8 +93,8 @@ class ptflasher(QWidget):
                     except:
                         default_addr = "0x00008000"
                         default_iface = "stlink.cfg"
-                        
-                    if os.path.exists(source) and os.path.getsize(source) >= 479232:
+                    
+                    if os.path.exists(source):
 
                         self.status.setText('Flashing...')
                 
@@ -106,6 +106,10 @@ class ptflasher(QWidget):
 
                         self.status.setText('Ready.')
                         
+                    elif source == '':
+                        self.status.setText("Set file location to be flashed!")
+                        self.progress.setValue(0)
+
                     else:
                         self.status.setText("File does not exist!")
                         self.progress.setValue(0)
