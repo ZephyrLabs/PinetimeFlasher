@@ -1,4 +1,7 @@
 # PinetimeFlasher
+
+![PinetimeFlasher](/PinetimeFlasher.png "PinetimeFlasher")
+
 GUI based app to help flash the pinetime with xpack-openOCD on windows, made with python and PyQT(for UI)
 
 to run the script you need Python >3.6 and xpack-openOCD installed
