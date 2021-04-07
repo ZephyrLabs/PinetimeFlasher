@@ -12,3 +12,4 @@ pip install pyinstaller
 pyinstaller -w --onefile PinetimeFlasher.py
 ```
 
+note: pre-made Executable and latest xpack-openOCD available in the releases!!!
