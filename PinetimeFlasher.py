@@ -80,6 +80,8 @@ class ptflasher(QWidget):
                     self.progress.setValue(0)
                     self.progress.setValue(10)
 
+                    source = self.filedir.toPlainText()
+
                     try:
                         with open('conf.dat', 'rb+') as f:
                                     data = pickle.load(f)
@@ -88,8 +90,10 @@ class ptflasher(QWidget):
                     except:
                         default_addr = "0x00008000"
                         default_iface = "stlink.cfg"
-                    
-                    os.system('openocd.exe -f "interface/{}" -f "target/nrf52.cfg" -c "init" -c "program {} {} verify reset exit"'.format(default_iface, filedir, default_addr))
+
+                    command = 'openocd.exe -f "interface/{}" -f "target/nrf52.cfg" -c "init" -c "program {} {} verify reset exit"'.format(default_iface, source, default_addr)
+                    print(command)
+                    os.system(command)
 
                     self.progress.setValue(100)
 
