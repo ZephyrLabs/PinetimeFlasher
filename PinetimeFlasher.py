@@ -60,6 +60,8 @@ class ptflasher(QWidget):
                 self.searchbtn = QPushButton('Search For File')
                 self.confbtn = QPushButton('configure flashing options...')
 
+                self.status = QLabel('Ready.')
+
                 self.filedialog = QFileDialog()
                
                 layout = QVBoxLayout()
@@ -70,6 +72,7 @@ class ptflasher(QWidget):
                 layout.addWidget(self.flashbtn)
                 layout.addWidget(self.searchbtn)
                 layout.addWidget(self.confbtn)
+                layout.addWidget(self.status)
                         
                 self.setLayout(layout)
                 self.setGeometry(300, 300, 300, 200)
@@ -90,20 +93,31 @@ class ptflasher(QWidget):
                     except:
                         default_addr = "0x00008000"
                         default_iface = "stlink.cfg"
+                        
+                    if os.path.exists(source) and os.path.getsize(source) >= 479232:
 
-                    command = 'openocd.exe -f "interface/{}" -f "target/nrf52.cfg" -c "init" -c "program {} {} verify reset exit"'.format(default_iface, source, default_addr)
-                    print(command)
-                    os.system(command)
+                        self.status.setText('Flashing...')
+                
+                        command = 'openocd.exe -f "interface/{}" -f "target/nrf52.cfg" -c "init" -c "program {} {} verify reset exit"'.format(default_iface, source, default_addr)
 
-                    self.progress.setValue(100)
+                        os.system(command)
+
+                        self.progress.setValue(100)
+
+                        self.status.setText('Ready.')
+                        
+                    else:
+                        self.status.setText("File does not exist!")
+                        self.progress.setValue(0)
 
                 def filesearch():
                         global progress, filedir
 
                         datafile = self.filedialog.getOpenFileName()
-
-                        self.filedir.setText(datafile[0])
-                        self.progress.setValue(0)    
+                        
+                        if datafile[0] != "":
+                            self.filedir.setText(datafile[0])
+                            self.progress.setValue(0)    
  
                 def confdialog():
                         d = QDialog()
@@ -123,6 +137,8 @@ class ptflasher(QWidget):
                         d.savebtn = QPushButton('save configuration')
                         d.infobtn = QPushButton('more info')
 
+                        d.status = QLabel('')
+
                         conflayout = QVBoxLayout()
                         confbuttonrow = QHBoxLayout()
                         
@@ -130,10 +146,14 @@ class ptflasher(QWidget):
                         conflayout.addWidget(d.addrbox)
                         conflayout.addWidget(d.ifaceinfo)
                         conflayout.addWidget(d.ifacebox)
-                        confbuttonrow.addWidget(d.savebtn)
-                        confbuttonrow.addWidget(d.infobtn)  
                         
+                        confbuttonrow.addWidget(d.savebtn)
+                        confbuttonrow.addWidget(d.infobtn)
+
                         conflayout.addLayout(confbuttonrow)
+
+                        conflayout.addWidget(d.status)
+
                         d.setLayout(conflayout)
 
                         try:
@@ -149,11 +169,23 @@ class ptflasher(QWidget):
                                 d.ifacebox.setText(default_iface)
 
                         def saveconf():
-                                global addrbox, ifacebox
+                                global addrbox, ifacebox, status
                                 addr = d.addrbox.toPlainText()
                                 iface = d.ifacebox.toPlainText()
-                                with open('conf.dat', 'wb+') as f:
-                                        pickle.dump((addr, iface), f)
+
+                                if addr == '' or iface == '':
+                                    if addr == '':
+                                        addr = '0x00008000'
+                                    if iface == '':
+                                        iface = 'stlink.cfg'
+
+                                if int(addr, 0) <= 479232 and int(addr, 0) >= 0:
+                                    with open('conf.dat', 'wb+') as f:
+                                            pickle.dump((addr, iface), f)
+                                    d.status.setText('Configuration Saved.')
+
+                                else:
+                                    d.status.setText('Flash address is out of range!')
                                 
 
                         d.infobtn.clicked.connect(infodialog)
