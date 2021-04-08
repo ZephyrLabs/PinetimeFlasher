@@ -9,14 +9,14 @@ import pickle
 # class for scrollable label
 class ScrollLabel(QScrollArea):
 
-    # contructor
+    # constructor
     def __init__(self, *args, **kwargs):
         QScrollArea.__init__(self, *args, **kwargs)
 
         # making widget resizable
         self.setWidgetResizable(True)
 
-        # making qwidget object
+        # making QWidget object
         content = QWidget(self)
         self.setWidget(content)
 
@@ -45,10 +45,10 @@ class ptflasher(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.setWindowTitle('Pinetime Flasher')
+        self.setWindowTitle('PineTime Flasher')
         self.resize(300, 300)
 
-        self.info = QLabel('Enter The Directory Of The File To Be Flashed')
+        self.info = QLabel('Enter The Path Of The File To Be Flashed')
 
         self.filedir = QTextEdit()
 
@@ -58,8 +58,8 @@ class ptflasher(QWidget):
         self.progress.setValue(0)
 
         self.flashbtn = QPushButton('Start Flashing')
-        self.searchbtn = QPushButton('Search For File')
-        self.confbtn = QPushButton('configure flashing options...')
+        self.searchbtn = QPushButton('Search for File')
+        self.confbtn = QPushButton('Configure flashing options...')
 
         self.status = QLabel('Ready.')
 
@@ -110,7 +110,7 @@ class ptflasher(QWidget):
                 self.status.setText('Ready.')
 
             elif source == '':
-                self.status.setText("Set file location to be flashed!")
+                self.status.setText("Set location of file to be flashed!")
                 self.progress.setValue(0)
 
             else:
@@ -131,7 +131,7 @@ class ptflasher(QWidget):
             d.setWindowTitle('Flash Configuration')
             d.resize(300, 200)
 
-            d.addrinfo = QLabel('Enter The Flash Address (default 0x00008000)')
+            d.addrinfo = QLabel('Enter the Flash Address (default 0x00008000)')
 
             d.ifaceinfo = QLabel('Enter the Interface (default stlink)')
 
@@ -141,8 +141,8 @@ class ptflasher(QWidget):
             default_addr = "0x00008000"
             default_iface = "stlink.cfg"
 
-            d.savebtn = QPushButton('save configuration')
-            d.infobtn = QPushButton('more info')
+            d.savebtn = QPushButton('Save configuration')
+            d.infobtn = QPushButton('More info')
 
             d.status = QLabel('')
 
@@ -202,22 +202,22 @@ class ptflasher(QWidget):
 
         def infodialog():
             d = QDialog()
-            d.setWindowTitle('About Pinetime Flasher')
-            d.resize(500, 200)
+            d.setWindowTitle('About PineTime Flasher')
+            d.resize(400, 200)
 
             text = '''
-                Pinetime Flasher is a simple GUI software written in python\n
-                using the xpack-openOCD tool for flashing the pinetime using\n
-                either stlink, jlink etc.\n\n
-                when first using the software,\n
-                its recommended to setup the configurationby choosing\n
-                the appropriate flashing address and flashing interface\n\n
-                the possible addresses are:\n
+                PineTime Flasher is a simple GUI software written in Python,\n
+                using the xpack-openOCD tool for flashing the PineTime with\n
+                either ST-Link, J-Link etc.\n\n
+                When first using the software, it is recommended that you\n
+                setup the configuration by choosing the appropriate flashing\n
+                address and flashing interface\n\n
+                The possible addresses are:\n
                 0x00 (for the bootloader)\n
                 0x00008000 (for mcuboot-app)\n\n
-                and for interface, the available are from the (*.cfg) \n
-                available from xpack-openOCD itself like:\n
-                stlink.cfg'''
+                For the interface, the options available are dependent on the\n
+                (*.cfg) provided by the xpack-openOCD itself. For example:\n
+                stlink.cfg or jlink.cfg'''
 
             d.label = ScrollLabel(d)
 
