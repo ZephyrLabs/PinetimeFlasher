@@ -70,8 +70,8 @@ class ptflasher(QWidget):
         layout.addWidget(self.info)
         layout.addWidget(self.filedir)
         layout.addWidget(self.progress)
-        layout.addWidget(self.flashbtn)
         layout.addWidget(self.searchbtn)
+        layout.addWidget(self.flashbtn)
         layout.addWidget(self.confbtn)
         layout.addWidget(self.status)
 
