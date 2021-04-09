@@ -1,6 +1,7 @@
 import sys
 import os
 import shutil
+import subprocess
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
@@ -107,7 +108,9 @@ class ptflasher(QWidget):
                                '-c "program {} {} verify reset exit"').format(
                         default_iface, source, default_addr)
 
-                    ret = os.system(command)
+                    si = subprocess.STARTUPINFO()
+                    si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                    ret = subprocess.call(command, startupinfo=si)
 
                     if ret == 0:
                         self.status.setText('Success!')
