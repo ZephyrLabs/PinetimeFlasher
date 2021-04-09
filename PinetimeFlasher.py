@@ -99,9 +99,10 @@ class ptflasher(QWidget):
 
                 self.status.setText('Flashing...')
 
-                command = 'openocd.exe -f "interface/{}" -f "target/nrf52.cfg"'
-                '-c "init" -c "program {} {} verify reset exit"'.format(
-                    default_iface, source, default_addr)
+                command = ('openocd.exe -f "interface/{}" '
+                           '-f "target/nrf52.cfg" -c "init" '
+                           '-c "program {} {} verify reset exit"').format(
+                               default_iface, source, default_addr)
 
                 os.system(command)
 
