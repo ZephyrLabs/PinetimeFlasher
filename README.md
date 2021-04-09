@@ -17,4 +17,4 @@ pip install pyinstaller
 pyinstaller -w --onefile PinetimeFlasher.py
 ```
 
-Note: Pre-made executable available in the [releases](/releases)!!!
+Note: Pre-made executable available in the [releases](https://github.com/ZephyrLabs/PinetimeFlasher/releases)!!!
