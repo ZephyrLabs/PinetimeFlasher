@@ -100,6 +100,7 @@ class ptflasher(QWidget):
             if os.path.exists(source):
                 if shutil.which('openocd') is not None:
                     self.status.setText('Flashing...')
+                    self.status.repaint()
 
                     command = ('openocd -f "interface/{}" '
                                '-f "target/nrf52.cfg" -c "init" '
