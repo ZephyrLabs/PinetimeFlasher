@@ -1,5 +1,6 @@
 import sys
 import os
+import shutil
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
@@ -82,7 +83,6 @@ class ptflasher(QWidget):
             global progress
 
             self.progress.setValue(0)
-            self.progress.setValue(10)
 
             source = self.filedir.toPlainText()
 
@@ -95,20 +95,25 @@ class ptflasher(QWidget):
                 default_addr = "0x00008000"
                 default_iface = "stlink.cfg"
 
+            self.progress.setValue(10)
+
             if os.path.exists(source):
 
-                self.status.setText('Flashing...')
+                if shutil.which('openocd') is not None:
+                    self.status.setText('Flashing...')
 
-                command = ('openocd -f "interface/{}" '
-                           '-f "target/nrf52.cfg" -c "init" '
-                           '-c "program {} {} verify reset exit"').format(
-                               default_iface, source, default_addr)
+                    command = ('openocd -f "interface/{}" '
+                               '-f "target/nrf52.cfg" -c "init" '
+                               '-c "program {} {} verify reset exit"').format(
+                        default_iface, source, default_addr)
 
-                os.system(command)
+                    os.system(command)
 
-                self.progress.setValue(100)
-
-                self.status.setText('Ready.')
+                    self.progress.setValue(100)
+                    self.status.setText('Ready.')
+                else:
+                    self.progress.setValue(0)
+                    self.status.setText("OpenOCD not found in system path!")
 
             elif source == '':
                 self.status.setText("Set location of file to be flashed!")
@@ -121,7 +126,8 @@ class ptflasher(QWidget):
         def filesearch():
             global progress, filedir
 
-            datafile = self.filedialog.getOpenFileName(filter="PineTime Firmware (*.bin *.hex)")
+            datafile = self.filedialog.getOpenFileName(
+                filter="PineTime Firmware (*.bin *.hex)")
 
             if datafile[0] != "":
                 self.filedir.setText(datafile[0])
