@@ -98,7 +98,6 @@ class ptflasher(QWidget):
             self.progress.setValue(10)
 
             if os.path.exists(source):
-
                 if shutil.which('openocd') is not None:
                     self.status.setText('Flashing...')
 
@@ -107,10 +106,14 @@ class ptflasher(QWidget):
                                '-c "program {} {} verify reset exit"').format(
                         default_iface, source, default_addr)
 
-                    os.system(command)
+                    ret = os.system(command)
+
+                    if ret == 0:
+                        self.status.setText('Success!')
+                    else:
+                        self.status.setText('Something probably went wrong :(')
 
                     self.progress.setValue(100)
-                    self.status.setText('Ready.')
                 else:
                     self.progress.setValue(0)
                     self.status.setText("OpenOCD not found in system path!")
