@@ -121,7 +121,7 @@ class ptflasher(QWidget):
         def filesearch():
             global progress, filedir
 
-            datafile = self.filedialog.getOpenFileName()
+            datafile = self.filedialog.getOpenFileName(filter="PineTime Firmware (*.bin *.hex)")
 
             if datafile[0] != "":
                 self.filedir.setText(datafile[0])
