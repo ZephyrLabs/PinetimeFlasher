@@ -18,4 +18,4 @@ pip install pyinstaller
 pyinstaller --onefile --icon PinetimeFlasher.ico --add-data PinetimeFlasher.ico;. PinetimeFlasher.pyw
 ```
 
-Note: Pre-made executable available in the [releases](https://github.com/ZephyrLabs/PinetimeFlasher/releases) when a new version is published, as well as [automatic builds by Github Actions](https://github.com/pfeerick/PinetimeFlasher/actions/workflows/pyinstaller-windows.yml).
+Note: Pre-made executable available in the [releases](releases) when a new version is published, as well as [automatic builds by Github Actions](actions/workflows/pyinstaller-windows.yml).
