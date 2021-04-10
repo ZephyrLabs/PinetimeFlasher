@@ -1,4 +1,4 @@
-name: Package for Windows with Pyinstaller
+name: Windows PyInstaller Builds
 
 on:
   push:
