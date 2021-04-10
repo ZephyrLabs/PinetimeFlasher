@@ -269,8 +269,10 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
 
-    appDir = os.path.dirname(os.path.realpath(__file__))
-    app_icon = QIcon(appDir + os.path.sep + 'PinetimeFlasher.png')
+    appDir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
+    path_to_icon = os.path.abspath(os.path.join(appDir, 'PinetimeFlasher.ico'))
+
+    app_icon = QIcon(path_to_icon)
     app.setWindowIcon(app_icon)
 
     qp = QPalette()
