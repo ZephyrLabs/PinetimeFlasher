@@ -8,9 +8,24 @@ from PyQt5.QtGui import *
 import pickle
 
 
+# Returns percentage progress value in response to key phrases from OpenOCD
+def progress_parser(output):
+    if "** Programming Started **" in output:
+        return 30
+    elif "** Programming Finished **" in output:
+        return 50
+    elif "** Verify Started **" in output:
+        return 70
+    elif "** Verified OK **" in output:
+        return 90
+    elif "** Resetting Target **" in output:
+        return 100
+    else:
+        return None
+
+
 # class for scrollable label
 class ScrollLabel(QScrollArea):
-
     # constructor
     def __init__(self, *args, **kwargs):
         QScrollArea.__init__(self, *args, **kwargs)
@@ -43,16 +58,20 @@ class ScrollLabel(QScrollArea):
         self.label.setText(text)
 
 
-class ptflasher(QWidget):
-    def __init__(self, parent=None):
-        super().__init__(parent)
+# Main Program Class and UI
+class ptflasher(QMainWindow):
+    def __init__(self):
+        super().__init__()
+
+        self.p = None  # Default empty value.
 
         self.setWindowTitle('PineTime Flasher')
-        self.resize(300, 300)
+        self.resize(300, 200)
 
         self.info = QLabel('Enter The Path Of The File To Be Flashed')
 
         self.filedir = QTextEdit()
+        filedir = self.filedir.toPlainText()
 
         self.progress = QProgressBar()
         self.progress.setMinimum(0)
@@ -62,6 +81,9 @@ class ptflasher(QWidget):
         self.flashbtn = QPushButton('Start Flashing')
         self.searchbtn = QPushButton('Search for File')
         self.confbtn = QPushButton('Configure flashing options...')
+        self.flashbtn.clicked.connect(self.startflash)
+        self.searchbtn.clicked.connect(self.filesearch)
+        self.confbtn.clicked.connect(self.confButton)
 
         self.status = QLabel('Ready.')
 
@@ -77,10 +99,13 @@ class ptflasher(QWidget):
         layout.addWidget(self.confbtn)
         layout.addWidget(self.status)
 
-        self.setLayout(layout)
-        self.setGeometry(300, 300, 300, 200)
+        w = QWidget()
+        w.setLayout(layout)
 
-        def startflash():
+        self.setCentralWidget(w)
+
+    def startflash(self):
+        if self.p is None:  # No process running.
             global progress
 
             self.progress.setValue(0)
@@ -108,16 +133,13 @@ class ptflasher(QWidget):
                                '-c "program {} {} verify reset exit"').format(
                         default_iface, source, default_addr)
 
-                    si = subprocess.STARTUPINFO()
-                    si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-                    ret = subprocess.call(command, startupinfo=si)
+                    self.p = QProcess()  # Keep a reference while it's running
+                    self.p.finished.connect(self.flash_finished)  # Clean up
+                    # self.p.readyReadStandardOutput.connect(self.handle_stdout)
+                    self.p.readyReadStandardError.connect(self.handle_stderr)
+                    # self.p.stateChanged.connect(self.handle_state)
+                    self.p.start(command)
 
-                    if ret == 0:
-                        self.status.setText('Success!')
-                    else:
-                        self.status.setText('Something probably went wrong :(')
-
-                    self.progress.setValue(100)
                 else:
                     self.progress.setValue(0)
                     self.status.setText("OpenOCD not found in system path!")
@@ -130,127 +152,159 @@ class ptflasher(QWidget):
                 self.status.setText("File does not exist!")
                 self.progress.setValue(0)
 
-        def filesearch():
-            global progress, filedir
+    def flash_finished(self, ):
+        if (self.p.exitCode() == 0):
+            self.status.setText('Success!')
+        else:
+            self.status.setText('Something probably went wrong :(')
+            self.progress.setValue(0)
+        self.p = None
 
-            datafile = self.filedialog.getOpenFileName(
-                filter="PineTime Firmware (*.bin *.hex)")
+    def handle_stderr(self):
+        data = self.p.readAllStandardError()
+        stderr = bytes(data).decode("utf8")
+        progress = progress_parser(stderr)
+        if progress:
+            self.progress.setValue(progress)
+            if progress == 70:
+                self.status.setText("Verifying...")
+        # print(stderr, end='')
 
-            if datafile[0] != "":
-                self.filedir.setText(datafile[0])
-                self.progress.setValue(0)
+    # def handle_stdout(self):
+    #     data = self.p.readAllStandardOutput()
+    #     stdout = bytes(data).decode("utf8")
 
-        def confdialog():
-            d = QDialog()
-            d.setWindowTitle('Flash Configuration')
-            d.resize(300, 200)
+    def filesearch(self):
+        global progress, filedir
 
-            d.addrinfo = QLabel('Enter the Flash Address (default 0x00008000)')
+        datafile = self.filedialog.getOpenFileName(
+            filter="PineTime Firmware (*.bin *.hex)")
 
-            d.ifaceinfo = QLabel('Enter the Interface (default stlink)')
+        if datafile[0] != "":
+            self.filedir.setText(datafile[0])
+            self.progress.setValue(0)
 
-            d.addrbox = QTextEdit()
-            d.ifacebox = QTextEdit()
-
-            default_addr = "0x00008000"
-            default_iface = "stlink.cfg"
-
-            d.savebtn = QPushButton('Save configuration')
-            d.infobtn = QPushButton('More info')
-
-            d.status = QLabel('')
-
-            conflayout = QVBoxLayout()
-            confbuttonrow = QHBoxLayout()
-
-            conflayout.addWidget(d.addrinfo)
-            conflayout.addWidget(d.addrbox)
-            conflayout.addWidget(d.ifaceinfo)
-            conflayout.addWidget(d.ifacebox)
-
-            confbuttonrow.addWidget(d.savebtn)
-            confbuttonrow.addWidget(d.infobtn)
-
-            conflayout.addLayout(confbuttonrow)
-
-            conflayout.addWidget(d.status)
-
-            d.setLayout(conflayout)
-
-            try:
-                with open('conf.dat', 'rb+') as f:
-                    data = pickle.load(f)
-                    default_addr = data[0]
-                    default_iface = data[1]
-                    d.addrbox.setText(default_addr)
-                    d.ifacebox.setText(default_iface)
-
-            except:
-                d.addrbox.setText(default_addr)
-                d.ifacebox.setText(default_iface)
-
-            def saveconf():
-                global addrbox, ifacebox, status
-                addr = d.addrbox.toPlainText()
-                iface = d.ifacebox.toPlainText()
-
-                if addr == '' or iface == '':
-                    if addr == '':
-                        addr = '0x00008000'
-                    if iface == '':
-                        iface = 'stlink.cfg'
-
-                if int(addr, 0) <= 479232 and int(addr, 0) >= 0:
-                    with open('conf.dat', 'wb+') as f:
-                        pickle.dump((addr, iface), f)
-                    d.status.setText('Configuration Saved.')
-
-                else:
-                    d.status.setText('Flash address is out of range!')
-
-            d.infobtn.clicked.connect(infodialog)
-            d.savebtn.clicked.connect(saveconf)
-
-            d.setWindowModality(Qt.ApplicationModal)
-            d.exec_()
-
-        def infodialog():
-            d = QDialog()
-            d.setWindowTitle('About PineTime Flasher')
-            d.resize(400, 200)
-
-            text = '''
-                PineTime Flasher is a simple GUI software written in Python,\n
-                using the xpack-openOCD tool for flashing the PineTime with\n
-                either ST-Link, J-Link etc.\n\n
-                When first using the software, it is recommended that you\n
-                setup the configuration by choosing the appropriate flashing\n
-                address and flashing interface\n\n
-                The possible addresses are:\n
-                0x00 (for the bootloader)\n
-                0x00008000 (for mcuboot-app)\n\n
-                For the interface, the options available are dependent on the\n
-                (*.cfg) provided by the xpack-openOCD itself. For example:\n
-                stlink.cfg or jlink.cfg'''
-
-            d.label = ScrollLabel(d)
-
-            # setting text to the label
-            d.label.setText(text)
-
-            # setting geometry
-            d.label.setGeometry(0, 0, 500, 200)
-
-            d.setWindowModality(Qt.ApplicationModal)
-            d.exec_()
-
-        filedir = self.filedir.toPlainText()
-
-        self.flashbtn.clicked.connect(startflash)
-        self.searchbtn.clicked.connect(filesearch)
-        self.confbtn.clicked.connect(confdialog)
+    def confButton(self, s):
+        dlg = ConfDialog()
+        dlg.exec()
 
 
+# Configuration class and UI
+class ConfDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+
+        default_addr = "0x00008000"
+        default_iface = "stlink.cfg"
+
+        self.setWindowTitle('Flash Configuration')
+        self.resize(300, 200)
+
+        self.addrinfo = QLabel('Enter the Flash Address (default 0x00008000)')
+        self.ifaceinfo = QLabel('Enter the Interface (default stlink)')
+
+        self.addrbox = QTextEdit()
+        self.ifacebox = QTextEdit()
+
+        self.savebtn = QPushButton('Save configuration')
+        self.infobtn = QPushButton('More info')
+
+        self.status = QLabel('')
+
+        conflayout = QVBoxLayout()
+        confbuttonrow = QHBoxLayout()
+
+        conflayout.addWidget(self.addrinfo)
+        conflayout.addWidget(self.addrbox)
+        conflayout.addWidget(self.ifaceinfo)
+        conflayout.addWidget(self.ifacebox)
+
+        confbuttonrow.addWidget(self.savebtn)
+        confbuttonrow.addWidget(self.infobtn)
+
+        conflayout.addLayout(confbuttonrow)
+
+        conflayout.addWidget(self.status)
+
+        self.setLayout(conflayout)
+
+        try:
+            with open('conf.dat', 'rb+') as f:
+                data = pickle.load(f)
+                default_addr = data[0]
+                default_iface = data[1]
+                self.addrbox.setText(default_addr)
+                self.ifacebox.setText(default_iface)
+
+        except:
+            self.addrbox.setText(default_addr)
+            self.ifacebox.setText(default_iface)
+
+        self.infobtn.clicked.connect(self.infoButton)
+        self.savebtn.clicked.connect(self.saveconf)
+
+        self.setWindowModality(Qt.ApplicationModal)
+
+    def saveconf(self, s):
+        global addrbox, ifacebox, status
+        addr = self.addrbox.toPlainText()
+        iface = self.ifacebox.toPlainText()
+
+        if addr == '' or iface == '':
+            if addr == '':
+                addr = '0x00008000'
+            if iface == '':
+                iface = 'stlink.cfg'
+
+        if int(addr, 0) <= 479232 and int(addr, 0) >= 0:
+            with open('conf.dat', 'wb+') as f:
+                pickle.dump((addr, iface), f)
+            self.status.setText('Configuration Saved.')
+
+        else:
+            self.status.setText('Flash address is out of range!')
+
+    def infoButton(self, s):
+        dlg = InfoDialog()
+        dlg.exec()
+
+
+# Info screen class and UI
+class InfoDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+
+        default_addr = "0x00008000"
+        default_iface = "stlink.cfg"
+
+        self.setWindowTitle('About PineTime Flasher')
+        self.resize(400, 200)
+
+        text = '''
+            PineTime Flasher is a simple GUI software written in Python,\n
+            using the xpack-openOCD tool for flashing the PineTime with\n
+            either ST-Link, J-Link etc.\n\n
+            When first using the software, it is recommended that you\n
+            setup the configuration by choosing the appropriate flashing\n
+            address and flashing interface\n\n
+            The possible addresses are:\n
+            0x00 (for the bootloader)\n
+            0x00008000 (for mcuboot-app)\n\n
+            For the interface, the options available are dependent on the\n
+            (*.cfg) provided by the xpack-openOCD itself. For example:\n
+            stlink.cfg or jlink.cfg'''
+
+        self.label = ScrollLabel(self)
+
+        # setting text to the label
+        self.label.setText(text)
+
+        # setting geometry
+        self.label.setGeometry(0, 0, 500, 200)
+        self.setWindowModality(Qt.ApplicationModal)
+
+
+# Program entrypoint
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
