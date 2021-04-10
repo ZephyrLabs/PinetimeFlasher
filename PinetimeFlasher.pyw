@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 import os
 import shutil
@@ -237,22 +239,25 @@ class InfoDialog(QDialog):
         default_iface = "stlink.cfg"
 
         self.setWindowTitle('About PineTime Flasher')
-        self.resize(400, 200)
+        self.resize(450, 200)
 
         vbox = QVBoxLayout()
         text = '''
-            PineTime Flasher is a simple GUI software written in Python,\n
-            using the xpack-openOCD tool for flashing the PineTime with\n
-            either ST-Link, J-Link etc.\n\n
-            When first using the software, it is recommended that you\n
-            setup the configuration by choosing the appropriate flashing\n
-            address and flashing interface\n\n
-            The possible addresses are:\n
-            0x00 (for the bootloader)\n
-            0x00008000 (for mcuboot-app)\n\n
-            For the interface, the options available are dependent on the\n
-            (*.cfg) provided by the xpack-openOCD itself. For example:\n
-            stlink.cfg or jlink.cfg'''
+        PineTime Flasher is a simple GUI software written in Python,
+        using the xpack-openOCD tool for flashing the PineTime with
+        either ST-Link, J-Link etc.
+
+        When first using the software, it is recommended that you
+        setup the configuration by choosing the appropriate flashing
+        address and flashing interface.
+
+        The possible addresses are:
+        0x00 (for the bootloader)
+        0x00008000 (for mcuboot-app)
+
+        For the interface, the options available are dependent on the
+        (*.cfg) provided by the xpack-openOCD itself. For example:
+        stlink.cfg or jlink.cfg'''
 
         textView = QPlainTextEdit()
         textView.setPlainText(text)
@@ -269,7 +274,8 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
 
-    appDir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
+    appDir = getattr(sys, '_MEIPASS', os.path.abspath(
+        os.path.dirname(__file__)))
     path_to_icon = os.path.abspath(os.path.join(appDir, 'PinetimeFlasher.ico'))
 
     app_icon = QIcon(path_to_icon)
