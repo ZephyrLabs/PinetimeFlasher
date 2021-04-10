@@ -1,4 +1,5 @@
 # PinetimeFlasher
+[![Windows PyInstaller Builds](https://github.com/pfeerick/PinetimeFlasher/actions/workflows/pyinstaller-windows.yml/badge.svg?branch=dev)](https://github.com/pfeerick/PinetimeFlasher/actions/workflows/pyinstaller-windows.yml)
 
 ![PinetimeFlasher](/PinetimeFlasher.png "PinetimeFlasher")
 
