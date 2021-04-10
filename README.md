@@ -14,7 +14,7 @@ Make sure you have PyQT5 installed, it can be installed with
 It can also be made into an executable using PyInstaller:
 ```
 pip install pyinstaller
-pyinstaller -w --onefile PinetimeFlasher.py
+pyinstaller -w --onefile PinetimeFlasher.pyw
 ```
 
 Note: Pre-made executable available in the [releases](https://github.com/ZephyrLabs/PinetimeFlasher/releases)!!!
