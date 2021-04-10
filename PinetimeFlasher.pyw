@@ -71,7 +71,7 @@ class ptflasher(QMainWindow):
         self.setCentralWidget(w)
 
     def startflash(self):
-        if self.p is None:  # No process running.
+        if self.p is None:  # If process not already running
             global progress
 
             self.progress.setValue(0)
@@ -101,9 +101,7 @@ class ptflasher(QMainWindow):
 
                     self.p = QProcess()  # Keep a reference while it's running
                     self.p.finished.connect(self.flash_finished)  # Clean up
-                    # self.p.readyReadStandardOutput.connect(self.handle_stdout)
                     self.p.readyReadStandardError.connect(self.handle_stderr)
-                    # self.p.stateChanged.connect(self.handle_state)
                     self.p.start(command)
 
                 else:
@@ -134,11 +132,6 @@ class ptflasher(QMainWindow):
             self.progress.setValue(progress)
             if progress == 70:
                 self.status.setText("Verifying...")
-        # print(stderr, end='')
-
-    # def handle_stdout(self):
-    #     data = self.p.readAllStandardOutput()
-    #     stdout = bytes(data).decode("utf8")
 
     def filesearch(self):
         global progress, filedir
