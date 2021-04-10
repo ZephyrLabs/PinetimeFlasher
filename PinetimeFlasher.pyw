@@ -269,6 +269,10 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
 
+    appDir = os.path.dirname(os.path.realpath(__file__))
+    app_icon = QIcon(appDir + os.path.sep + 'PinetimeFlasher.png')
+    app.setWindowIcon(app_icon)
+
     qp = QPalette()
     qp.setColor(QPalette.ButtonText, Qt.white)
     qp.setColor(QPalette.Window, Qt.gray)
