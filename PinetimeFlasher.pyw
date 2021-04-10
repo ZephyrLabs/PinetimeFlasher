@@ -24,40 +24,6 @@ def progress_parser(output):
         return None
 
 
-# class for scrollable label
-class ScrollLabel(QScrollArea):
-    # constructor
-    def __init__(self, *args, **kwargs):
-        QScrollArea.__init__(self, *args, **kwargs)
-
-        # making widget resizable
-        self.setWidgetResizable(True)
-
-        # making QWidget object
-        content = QWidget(self)
-        self.setWidget(content)
-
-        # vertical box layout
-        lay = QVBoxLayout(content)
-
-        # creating label
-        self.label = QLabel(content)
-
-        # setting alignment to the text
-        self.label.setAlignment(Qt.AlignLeft | Qt.AlignTop)
-
-        # making label multi-line
-        self.label.setWordWrap(True)
-
-        # adding label to the layout
-        lay.addWidget(self.label)
-
-    # the setText method
-    def setText(self, text):
-        # setting text to the label
-        self.label.setText(text)
-
-
 # Main Program Class and UI
 class ptflasher(QMainWindow):
     def __init__(self):
@@ -280,6 +246,7 @@ class InfoDialog(QDialog):
         self.setWindowTitle('About PineTime Flasher')
         self.resize(400, 200)
 
+        vbox = QVBoxLayout()
         text = '''
             PineTime Flasher is a simple GUI software written in Python,\n
             using the xpack-openOCD tool for flashing the PineTime with\n
@@ -294,13 +261,13 @@ class InfoDialog(QDialog):
             (*.cfg) provided by the xpack-openOCD itself. For example:\n
             stlink.cfg or jlink.cfg'''
 
-        self.label = ScrollLabel(self)
+        textView = QPlainTextEdit()
+        textView.setPlainText(text)
+        textView.setReadOnly(True)
 
-        # setting text to the label
-        self.label.setText(text)
+        vbox.addWidget(textView)
+        self.setLayout(vbox)
 
-        # setting geometry
-        self.label.setGeometry(0, 0, 500, 200)
         self.setWindowModality(Qt.ApplicationModal)
 
 
