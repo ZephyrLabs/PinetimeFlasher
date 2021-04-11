@@ -1,4 +1,4 @@
-name: Windows PyInstaller Builds
+name: Windows PyInstaller Builds and Release Notes
 
 on:
   push:
@@ -6,18 +6,17 @@ on:
       - main
     paths-ignore:
       - '**.md'
-  pull_request:
-    branches:
-      - main
-    paths-ignore:
-      - '**.md'
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
+    - id: release_drafter
+      uses: release-drafter/release-drafter@v5
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     - uses: actions/checkout@v2
 
     - name: Package Application
@@ -25,7 +24,17 @@ jobs:
       with:
         path: .
 
-    - uses: actions/upload-artifact@v2
+    - name: Upload binaries as artifact
+      uses: actions/upload-artifact@v2
       with:
         name: PinetimeFlasher-for-Windows
         path: ./dist/windows
+
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ./dist/windows/PinetimeFlasher.exe
+        asset_name: PinetimeFlasher.exe
+        tag: ${{ steps.release_drafter.outputs.tag_name }}
+        overwrite: true
