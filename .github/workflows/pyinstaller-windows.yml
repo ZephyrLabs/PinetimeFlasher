@@ -3,12 +3,12 @@ name: Windows PyInstaller Builds
 on:
   push:
     branches:
-      - dev
+      - main
     paths-ignore:
       - '**.md'
   pull_request:
     branches:
-      - dev
+      - main
     paths-ignore:
       - '**.md'
 
