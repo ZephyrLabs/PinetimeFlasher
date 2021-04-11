@@ -1,4 +1,5 @@
 # PinetimeFlasher
+[![Windows PyInstaller Builds](https://github.com/pfeerick/PinetimeFlasher/actions/workflows/pyinstaller-windows.yml/badge.svg?branch=dev)](https://github.com/pfeerick/PinetimeFlasher/actions/workflows/pyinstaller-windows.yml)
 
 ![PinetimeFlasher](/PinetimeFlasher.png "PinetimeFlasher")
 
@@ -14,7 +15,7 @@ Make sure you have PyQT5 installed, it can be installed with
 It can also be made into an executable using PyInstaller:
 ```
 pip install pyinstaller
-pyinstaller -w --onefile PinetimeFlasher.py
+pyinstaller --onefile --icon PinetimeFlasher.ico --add-data PinetimeFlasher.ico;. PinetimeFlasher.pyw
 ```
 
-Note: Pre-made executable available in the [releases](https://github.com/ZephyrLabs/PinetimeFlasher/releases)!!!
+Note: Pre-made executable available in the [releases](https://github.com/ZephyrLabs/PinetimeFlasher/releases) when a new version is published, as well as [automatic builds by Github Actions](https://github.com/pfeerick/PinetimeFlasher/actions/workflows/pyinstaller-windows.yml).

@@ -1,0 +1,31 @@
+name: Windows PyInstaller Builds
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Package Application
+      uses: JackMcKew/pyinstaller-action-windows@main
+      with:
+        path: .
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: PinetimeFlasher-for-Windows
+        path: ./dist/windows
