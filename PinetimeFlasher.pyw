@@ -85,7 +85,7 @@ class ptflasher(QMainWindow):
                     data = pickle.load(f)
                     default_addr = data[0]
                     default_iface = data[1]
-            except:
+            except OSError:
                 default_addr = "0x00008000"
                 default_iface = "stlink.cfg"
 
@@ -197,8 +197,7 @@ class ConfDialog(QDialog):
                 default_iface = data[1]
                 self.addrbox.setText(default_addr)
                 self.ifacebox.setText(default_iface)
-
-        except:
+        except OSError:
             self.addrbox.setText(default_addr)
             self.ifacebox.setText(default_iface)
 
@@ -219,10 +218,12 @@ class ConfDialog(QDialog):
                 iface = 'stlink.cfg'
 
         if int(addr, 0) <= 479232 and int(addr, 0) >= 0:
-            with open('conf.dat', 'wb+') as f:
-                pickle.dump((addr, iface), f)
-            self.status.setText('Configuration Saved.')
-
+            try:
+                with open('conf.dat', 'wb+') as f:
+                    pickle.dump((addr, iface), f)
+                self.status.setText('Configuration Saved.')
+            except OSError:
+                self.status.setText('Unable to write configuration file!')
         else:
             self.status.setText('Flash address is out of range!')
 
