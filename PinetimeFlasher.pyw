@@ -208,13 +208,8 @@ class ConfDialog(QDialog):
 
     def saveconf(self, s):
         global addrbox, ifacebox, status
-        addr = self.addrbox.toPlainText()
-        iface = self.ifacebox.toPlainText()
-
-        if addr == '':
-            addr = '0x00008000'
-        if iface == '':
-            iface = 'stlink.cfg'
+        addr = self.addrbox.toPlainText() or '0x00008000'
+        iface = self.ifacebox.toPlainText() or 'stlink.cfg'
 
         if int(addr, 0) <= 479232 and int(addr, 0) >= 0:
             try:
