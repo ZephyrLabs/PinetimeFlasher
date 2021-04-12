@@ -219,7 +219,7 @@ class ConfDialog(QDialog):
             except OSError:
                 self.status.setText('Unable to write configuration file!')
         else:
-            self.status.setText('Flash address is out of range!')
+            self.status.setText('Flash address not in the valid range (0x0 - 0x00075000)')
 
     def infoButton(self, s):
         dlg = InfoDialog()
