@@ -119,7 +119,7 @@ class ptflasher(QMainWindow):
             self.progress.setValue(0)
 
     def flash_finished(self, ):
-        if (self.p.exitCode() == 0):
+        if self.p.exitCode() == 0:
             self.status.setText('Success!')
         else:
             self.status.setText('Something probably went wrong :(')
