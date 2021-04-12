@@ -211,7 +211,7 @@ class ConfDialog(QDialog):
         addr = self.addrbox.toPlainText() or '0x00008000'
         iface = self.ifacebox.toPlainText() or 'stlink.cfg'
 
-        if int(addr, 0) <= 479232 and int(addr, 0) >= 0:
+        if int(addr, 0) <= 0x00075000 and int(addr, 0) >= 0:
             try:
                 with open('conf.dat', 'wb+') as f:
                     pickle.dump((addr, iface), f)
