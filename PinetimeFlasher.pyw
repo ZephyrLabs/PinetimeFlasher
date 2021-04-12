@@ -22,8 +22,6 @@ def progress_parser(output):
         return 90
     elif "** Resetting Target **" in output:
         return 100
-    else:
-        return None
 
 
 # Main Program Class and UI
@@ -73,50 +71,52 @@ class ptflasher(QMainWindow):
         self.setCentralWidget(w)
 
     def startflash(self):
-        if self.p is None:  # If process not already running
-            global progress
+        if self.p:  # if process is already running
+            return
 
-            self.progress.setValue(0)
+        global progress
 
-            source = self.filedir.toPlainText()
+        self.progress.setValue(0)
 
-            try:
-                with open('conf.dat', 'rb+') as f:
-                    data = pickle.load(f)
-                    default_addr = data[0]
-                    default_iface = data[1]
-            except OSError:
-                default_addr = "0x00008000"
-                default_iface = "stlink.cfg"
+        source = self.filedir.toPlainText()
 
-            self.progress.setValue(10)
+        try:
+            with open('conf.dat', 'rb+') as f:
+                data = pickle.load(f)
+                default_addr = data[0]
+                default_iface = data[1]
+        except OSError:
+            default_addr = "0x00008000"
+            default_iface = "stlink.cfg"
 
-            if os.path.exists(source):
-                if shutil.which('openocd') is not None:
-                    self.status.setText('Flashing...')
-                    self.status.repaint()
+        self.progress.setValue(10)
 
-                    command = ('openocd -f "interface/{}" '
-                               '-f "target/nrf52.cfg" -c "init" '
-                               '-c "program {} {} verify reset exit"').format(
-                        default_iface, source, default_addr)
+        if os.path.exists(source):
+            if shutil.which('openocd'):
+                self.status.setText('Flashing...')
+                self.status.repaint()
 
-                    self.p = QProcess()  # Keep a reference while it's running
-                    self.p.finished.connect(self.flash_finished)  # Clean up
-                    self.p.readyReadStandardError.connect(self.handle_stderr)
-                    self.p.start(command)
+                command = ('openocd -f "interface/{}" '
+                           '-f "target/nrf52.cfg" -c "init" '
+                           '-c "program {} {} verify reset exit"').format(
+                    default_iface, source, default_addr)
 
-                else:
-                    self.progress.setValue(0)
-                    self.status.setText("OpenOCD not found in system path!")
-
-            elif source == '':
-                self.status.setText("Set location of file to be flashed!")
-                self.progress.setValue(0)
+                self.p = QProcess()  # Keep a reference while it's running
+                self.p.finished.connect(self.flash_finished)  # Clean up
+                self.p.readyReadStandardError.connect(self.handle_stderr)
+                self.p.start(command)
 
             else:
-                self.status.setText("File does not exist!")
                 self.progress.setValue(0)
+                self.status.setText("OpenOCD not found in system path!")
+
+        elif source == '':
+            self.status.setText("Set location of file to be flashed!")
+            self.progress.setValue(0)
+
+        else:
+            self.status.setText("File does not exist!")
+            self.progress.setValue(0)
 
     def flash_finished(self, ):
         if (self.p.exitCode() == 0):
