@@ -211,11 +211,10 @@ class ConfDialog(QDialog):
         addr = self.addrbox.toPlainText()
         iface = self.ifacebox.toPlainText()
 
-        if addr == '' or iface == '':
-            if addr == '':
-                addr = '0x00008000'
-            if iface == '':
-                iface = 'stlink.cfg'
+        if addr == '':
+            addr = '0x00008000'
+        if iface == '':
+            iface = 'stlink.cfg'
 
         if int(addr, 0) <= 479232 and int(addr, 0) >= 0:
             try:
