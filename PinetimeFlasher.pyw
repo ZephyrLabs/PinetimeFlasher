@@ -3,7 +3,7 @@
 import sys
 import os
 import shutil
-import subprocess
+from pathlib import Path
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
@@ -22,22 +22,6 @@ def progress_parser(output):
         return 90
     elif "** Resetting Target **" in output:
         return 100
-    else:
-        return None
-
-
-# Source: https://stackoverflow.com/a/48706260/4914192
-def get_download_path():
-    """Returns the default downloads path for linux or windows"""
-    if os.name == 'nt':
-        import winreg
-        sub_key = r'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders'
-        downloads_guid = '{374DE290-123F-4565-9164-39C4925E467B}'
-        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, sub_key) as key:
-            location = winreg.QueryValueEx(key, downloads_guid)[0]
-        return location
-    else:
-        return os.path.join(os.path.expanduser('~'), 'downloads')
 
 
 # Main Program Class and UI
@@ -87,53 +71,55 @@ class ptflasher(QMainWindow):
         self.setCentralWidget(w)
 
     def startflash(self):
-        if self.p is None:  # If process not already running
-            global progress
+        if self.p:  # if process is already running
+            return
 
-            self.progress.setValue(0)
+        global progress
 
-            source = self.filedir.toPlainText()
+        self.progress.setValue(0)
 
-            try:
-                with open('conf.dat', 'rb+') as f:
-                    data = pickle.load(f)
-                    default_addr = data[0]
-                    default_iface = data[1]
-            except:
-                default_addr = "0x00008000"
-                default_iface = "stlink.cfg"
+        source = self.filedir.toPlainText()
 
-            self.progress.setValue(10)
+        try:
+            with open('conf.dat', 'rb+') as f:
+                data = pickle.load(f)
+                default_addr = data[0]
+                default_iface = data[1]
+        except OSError:
+            default_addr = "0x00008000"
+            default_iface = "stlink.cfg"
 
-            if os.path.exists(source):
-                if shutil.which('openocd') is not None:
-                    self.status.setText('Flashing...')
-                    self.status.repaint()
+        self.progress.setValue(10)
 
-                    command = ('openocd -f "interface/{}" '
-                               '-f "target/nrf52.cfg" -c "init" '
-                               '-c "program {} {} verify reset exit"').format(
-                        default_iface, source, default_addr)
+        if os.path.exists(source):
+            if shutil.which('openocd'):
+                self.status.setText('Flashing...')
+                self.status.repaint()
 
-                    self.p = QProcess()  # Keep a reference while it's running
-                    self.p.finished.connect(self.flash_finished)  # Clean up
-                    self.p.readyReadStandardError.connect(self.handle_stderr)
-                    self.p.start(command)
+                command = ('openocd -f "interface/{}" '
+                           '-f "target/nrf52.cfg" -c "init" '
+                           '-c "program {} {} verify reset exit"').format(
+                    default_iface, source, default_addr)
 
-                else:
-                    self.progress.setValue(0)
-                    self.status.setText("OpenOCD not found in system path!")
-
-            elif source == '':
-                self.status.setText("Set location of file to be flashed!")
-                self.progress.setValue(0)
+                self.p = QProcess()  # Keep a reference while it's running
+                self.p.finished.connect(self.flash_finished)  # Clean up
+                self.p.readyReadStandardError.connect(self.handle_stderr)
+                self.p.start(command)
 
             else:
-                self.status.setText("File does not exist!")
                 self.progress.setValue(0)
+                self.status.setText("OpenOCD not found in system path!")
+
+        elif source == '':
+            self.status.setText("Set location of file to be flashed!")
+            self.progress.setValue(0)
+
+        else:
+            self.status.setText("File does not exist!")
+            self.progress.setValue(0)
 
     def flash_finished(self, ):
-        if (self.p.exitCode() == 0):
+        if self.p.exitCode() == 0:
             self.status.setText('Success!')
         else:
             self.status.setText('Something probably went wrong :(')
@@ -152,10 +138,8 @@ class ptflasher(QMainWindow):
     def filesearch(self):
         global progress, filedir
 
-        downloadsFolder = get_download_path()
-
         datafile = self.filedialog.getOpenFileName(caption="Select firmware file to flash...",
-                                                   directory=downloadsFolder,
+                                                   directory=str(Path.home() / "Downloads"),
                                                    filter="PineTime Firmware (*.bin *.hex)")
 
         if datafile[0] != "":
@@ -213,8 +197,7 @@ class ConfDialog(QDialog):
                 default_iface = data[1]
                 self.addrbox.setText(default_addr)
                 self.ifacebox.setText(default_iface)
-
-        except:
+        except OSError:
             self.addrbox.setText(default_addr)
             self.ifacebox.setText(default_iface)
 
@@ -225,22 +208,18 @@ class ConfDialog(QDialog):
 
     def saveconf(self, s):
         global addrbox, ifacebox, status
-        addr = self.addrbox.toPlainText()
-        iface = self.ifacebox.toPlainText()
+        addr = self.addrbox.toPlainText() or '0x00008000'
+        iface = self.ifacebox.toPlainText() or 'stlink.cfg'
 
-        if addr == '' or iface == '':
-            if addr == '':
-                addr = '0x00008000'
-            if iface == '':
-                iface = 'stlink.cfg'
-
-        if int(addr, 0) <= 479232 and int(addr, 0) >= 0:
-            with open('conf.dat', 'wb+') as f:
-                pickle.dump((addr, iface), f)
-            self.status.setText('Configuration Saved.')
-
+        if int(addr, 0) <= 0x00075000 and int(addr, 0) >= 0:
+            try:
+                with open('conf.dat', 'wb+') as f:
+                    pickle.dump((addr, iface), f)
+                self.status.setText('Configuration Saved.')
+            except OSError:
+                self.status.setText('Unable to write configuration file!')
         else:
-            self.status.setText('Flash address is out of range!')
+            self.status.setText('Flash address not in the valid range (0x0 - 0x00075000)')
 
     def infoButton(self, s):
         dlg = InfoDialog()
