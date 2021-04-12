@@ -3,7 +3,7 @@
 import sys
 import os
 import shutil
-import subprocess
+from pathlib import Path
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
@@ -24,20 +24,6 @@ def progress_parser(output):
         return 100
     else:
         return None
-
-
-# Source: https://stackoverflow.com/a/48706260/4914192
-def get_download_path():
-    """Returns the default downloads path for linux or windows"""
-    if os.name == 'nt':
-        import winreg
-        sub_key = r'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders'
-        downloads_guid = '{374DE290-123F-4565-9164-39C4925E467B}'
-        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, sub_key) as key:
-            location = winreg.QueryValueEx(key, downloads_guid)[0]
-        return location
-    else:
-        return os.path.join(os.path.expanduser('~'), 'downloads')
 
 
 # Main Program Class and UI
@@ -152,10 +138,8 @@ class ptflasher(QMainWindow):
     def filesearch(self):
         global progress, filedir
 
-        downloadsFolder = get_download_path()
-
         datafile = self.filedialog.getOpenFileName(caption="Select firmware file to flash...",
-                                                   directory=downloadsFolder,
+                                                   directory=str(Path.home() / "Downloads"),
                                                    filter="PineTime Firmware (*.bin *.hex)")
 
         if datafile[0] != "":
