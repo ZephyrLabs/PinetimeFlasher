@@ -172,9 +172,11 @@ class ConfDialog(QDialog):
         self.resize(300, 200)
 
         self.addrinfo = QLabel("Firmware type (used to determine address):")
-        self.ifaceinfo = QLabel("Enter the interface (default: stlink.cfg)")
-
         self.addrbox = QComboBox()
+        for firmware in self.firmware_types:
+            self.addrbox.addItem(firmware["name"], firmware["address"])
+
+        self.ifaceinfo = QLabel("Enter the interface (default: stlink.cfg)")
         self.ifacebox = QPlainTextEdit()
 
         self.savebtn = QPushButton("Save configuration")
@@ -185,9 +187,6 @@ class ConfDialog(QDialog):
         conflayout = QVBoxLayout()
         confbuttonrow = QHBoxLayout()
 
-        for firmware in self.firmware_types:
-            self.addrbox.addItem(firmware["name"], firmware["address"])
-
         conflayout.addWidget(self.addrinfo)
         conflayout.addWidget(self.addrbox)
         conflayout.addWidget(self.ifaceinfo)
@@ -197,7 +196,6 @@ class ConfDialog(QDialog):
         confbuttonrow.addWidget(self.infobtn)
 
         conflayout.addLayout(confbuttonrow)
-
         conflayout.addWidget(self.status)
 
         self.setLayout(conflayout)
