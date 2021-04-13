@@ -31,10 +31,10 @@ class ptflasher(QMainWindow):
 
         self.p = None  # Default empty value.
 
-        self.setWindowTitle('PineTime Flasher')
+        self.setWindowTitle("PineTime Flasher")
         self.resize(300, 200)
 
-        self.info = QLabel('Enter The Path Of The File To Be Flashed')
+        self.info = QLabel("Enter The Path Of The File To Be Flashed")
 
         self.filedir = QTextEdit()
         filedir = self.filedir.toPlainText()
@@ -44,14 +44,14 @@ class ptflasher(QMainWindow):
         self.progress.setMaximum(100)
         self.progress.setValue(0)
 
-        self.flashbtn = QPushButton('Start Flashing')
-        self.searchbtn = QPushButton('Search for File')
-        self.confbtn = QPushButton('Configure flashing options...')
+        self.flashbtn = QPushButton("Start Flashing")
+        self.searchbtn = QPushButton("Search for File")
+        self.confbtn = QPushButton("Configure flashing options...")
         self.flashbtn.clicked.connect(self.startflash)
         self.searchbtn.clicked.connect(self.filesearch)
         self.confbtn.clicked.connect(self.confButton)
 
-        self.status = QLabel('Ready.')
+        self.status = QLabel("Ready.")
 
         self.filedialog = QFileDialog()
 
@@ -81,7 +81,7 @@ class ptflasher(QMainWindow):
         source = self.filedir.toPlainText()
 
         try:
-            with open('conf.dat', 'rb+') as f:
+            with open("conf.dat", "rb+") as f:
                 data = pickle.load(f)
                 default_addr = data[0]
                 default_iface = data[1]
@@ -92,14 +92,15 @@ class ptflasher(QMainWindow):
         self.progress.setValue(10)
 
         if os.path.exists(source):
-            if shutil.which('openocd'):
-                self.status.setText('Flashing...')
+            if shutil.which("openocd"):
+                self.status.setText("Flashing...")
                 self.status.repaint()
 
-                command = ('openocd -f "interface/{}" '
-                           '-f "target/nrf52.cfg" -c "init" '
-                           '-c "program {} {} verify reset exit"').format(
-                    default_iface, source, default_addr)
+                command = (
+                    'openocd -f "interface/{}" '
+                    '-f "target/nrf52.cfg" -c "init" '
+                    '-c "program {} {} verify reset exit"'
+                ).format(default_iface, source, default_addr)
 
                 self.p = QProcess()  # Keep a reference while it's running
                 self.p.finished.connect(self.flash_finished)  # Clean up
@@ -110,7 +111,7 @@ class ptflasher(QMainWindow):
                 self.progress.setValue(0)
                 self.status.setText("OpenOCD not found in system path!")
 
-        elif source == '':
+        elif source == "":
             self.status.setText("Set location of file to be flashed!")
             self.progress.setValue(0)
 
@@ -118,11 +119,11 @@ class ptflasher(QMainWindow):
             self.status.setText("File does not exist!")
             self.progress.setValue(0)
 
-    def flash_finished(self, ):
+    def flash_finished(self):
         if self.p.exitCode() == 0:
-            self.status.setText('Success!')
+            self.status.setText("Success!")
         else:
-            self.status.setText('Something probably went wrong :(')
+            self.status.setText("Something probably went wrong :(")
             self.progress.setValue(0)
         self.p = None
 
@@ -138,9 +139,11 @@ class ptflasher(QMainWindow):
     def filesearch(self):
         global progress, filedir
 
-        datafile = self.filedialog.getOpenFileName(caption="Select firmware file to flash...",
-                                                   directory=str(Path.home() / "Downloads"),
-                                                   filter="PineTime Firmware (*.bin *.hex)")
+        datafile = self.filedialog.getOpenFileName(
+            caption="Select firmware file to flash...",
+            directory=str(Path.home() / "Downloads"),
+            filter="PineTime Firmware (*.bin *.hex)",
+        )
 
         if datafile[0] != "":
             self.filedir.setText(datafile[0])
@@ -159,19 +162,19 @@ class ConfDialog(QDialog):
         default_addr = "0x00008000"
         default_iface = "stlink.cfg"
 
-        self.setWindowTitle('Flash Configuration')
+        self.setWindowTitle("Flash Configuration")
         self.resize(300, 200)
 
-        self.addrinfo = QLabel('Enter the Flash Address (default 0x00008000)')
-        self.ifaceinfo = QLabel('Enter the Interface (default stlink)')
+        self.addrinfo = QLabel("Enter the Flash Address (default 0x00008000)")
+        self.ifaceinfo = QLabel("Enter the Interface (default stlink)")
 
         self.addrbox = QTextEdit()
         self.ifacebox = QTextEdit()
 
-        self.savebtn = QPushButton('Save configuration')
-        self.infobtn = QPushButton('More info')
+        self.savebtn = QPushButton("Save configuration")
+        self.infobtn = QPushButton("More info")
 
-        self.status = QLabel('')
+        self.status = QLabel("")
 
         conflayout = QVBoxLayout()
         confbuttonrow = QHBoxLayout()
@@ -191,7 +194,7 @@ class ConfDialog(QDialog):
         self.setLayout(conflayout)
 
         try:
-            with open('conf.dat', 'rb+') as f:
+            with open("conf.dat", "rb+") as f:
                 data = pickle.load(f)
                 default_addr = data[0]
                 default_iface = data[1]
@@ -208,18 +211,20 @@ class ConfDialog(QDialog):
 
     def saveconf(self, s):
         global addrbox, ifacebox, status
-        addr = self.addrbox.toPlainText() or '0x00008000'
-        iface = self.ifacebox.toPlainText() or 'stlink.cfg'
+        addr = self.addrbox.toPlainText() or "0x00008000"
+        iface = self.ifacebox.toPlainText() or "stlink.cfg"
 
         if int(addr, 0) <= 0x00075000 and int(addr, 0) >= 0:
             try:
-                with open('conf.dat', 'wb+') as f:
+                with open("conf.dat", "wb+") as f:
                     pickle.dump((addr, iface), f)
-                self.status.setText('Configuration Saved.')
+                self.status.setText("Configuration Saved.")
             except OSError:
-                self.status.setText('Unable to write configuration file!')
+                self.status.setText("Unable to write configuration file!")
         else:
-            self.status.setText('Flash address not in the valid range (0x0 - 0x00075000)')
+            self.status.setText(
+                "Flash address not in the valid range (0x0 - 0x00075000)"
+            )
 
     def infoButton(self, s):
         dlg = InfoDialog()
@@ -234,11 +239,11 @@ class InfoDialog(QDialog):
         default_addr = "0x00008000"
         default_iface = "stlink.cfg"
 
-        self.setWindowTitle('About PineTime Flasher')
+        self.setWindowTitle("About PineTime Flasher")
         self.resize(450, 200)
 
         vbox = QVBoxLayout()
-        text = '''
+        text = """
         PineTime Flasher is a simple GUI software written in Python,
         using the xpack-openOCD tool for flashing the PineTime with
         either ST-Link, J-Link etc.
@@ -253,7 +258,7 @@ class InfoDialog(QDialog):
 
         For the interface, the options available are dependent on the
         (*.cfg) provided by the xpack-openOCD itself. For example:
-        stlink.cfg or jlink.cfg'''
+        stlink.cfg or jlink.cfg"""
 
         textView = QPlainTextEdit()
         textView.setPlainText(text)
@@ -266,13 +271,13 @@ class InfoDialog(QDialog):
 
 
 # Program entrypoint
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
 
-    appDir = getattr(sys, '_MEIPASS', os.path.abspath(
-        os.path.dirname(__file__)))
-    path_to_icon = os.path.abspath(os.path.join(appDir, 'PinetimeFlasher.ico'))
+    appDir = getattr(sys, "_MEIPASS",
+                     os.path.abspath(os.path.dirname(__file__)))
+    path_to_icon = os.path.abspath(os.path.join(appDir, "PinetimeFlasher.ico"))
 
     app_icon = QIcon(path_to_icon)
     app.setWindowIcon(app_icon)
