@@ -51,7 +51,7 @@ class ptflasher(QMainWindow):
         self.setWindowTitle("PineTime Flasher")
         self.resize(300, 200)
 
-        self.info = QLabel("Enter The Path Of The File To Be Flashed")
+        self.info = QLabel("Enter the path of the file to be flashed")
 
         self.filedir = QPlainTextEdit()
 
@@ -60,7 +60,7 @@ class ptflasher(QMainWindow):
         self.progress.setMaximum(100)
         self.progress.setValue(0)
 
-        self.flashbtn = QPushButton("Start Flashing")
+        self.flashbtn = QPushButton("Start flashing")
         self.searchbtn = QPushButton("Search for File")
         self.confbtn = QPushButton("Configure flashing options...")
         self.flashbtn.clicked.connect(self.startflash)
