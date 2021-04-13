@@ -24,7 +24,7 @@ def progress_parser(output):
         return 100
 
 
-def read_config_file(status_notice):
+def read_config_file(status_notice: QLabel) -> (str, str):
     """
     Return the (address, interface) as read from the config file.
     Returns default values for both if there are any file access errors.
