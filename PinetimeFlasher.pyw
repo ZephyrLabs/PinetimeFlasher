@@ -24,6 +24,23 @@ def progress_parser(output):
         return 100
 
 
+def read_config_file(status_notice):
+    """
+    Return the (address, interface) as read from the config file.
+    Returns default values for both if there are any file access errors.
+    """
+    try:
+        with open("conf.dat", "rb+") as f:
+            data = pickle.load(f)
+            address = data[0]
+            interface = data[1]
+        return address, interface
+    except OSError:
+        status_notice.setText("Unable to read config file - using default values!")
+
+    return "0x00008000", "stlink.cfg"
+
+
 # Main Program Class and UI
 class ptflasher(QMainWindow):
     def __init__(self):
@@ -77,15 +94,7 @@ class ptflasher(QMainWindow):
         self.progress.setValue(0)
 
         source = self.filedir.toPlainText()
-
-        try:
-            with open("conf.dat", "rb+") as f:
-                data = pickle.load(f)
-                default_addr = data[0]
-                default_iface = data[1]
-        except OSError:
-            default_addr = "0x00008000"
-            default_iface = "stlink.cfg"
+        address, interface = read_config_file(self.status)
 
         self.progress.setValue(10)
 
@@ -111,7 +120,7 @@ class ptflasher(QMainWindow):
             'openocd -f "interface/{}" '
             '-f "target/nrf52.cfg" -c "init" '
             '-c "program {} {} verify reset exit"'
-        ).format(default_iface, source, default_addr)
+        ).format(interface, source, address)
 
         self.p = QProcess()  # Keep a reference while it's running
         self.p.finished.connect(self.flash_finished)  # Clean up
@@ -156,16 +165,18 @@ class ConfDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
 
-        default_addr = "0x00008000"
-        default_iface = "stlink.cfg"
+        self.firmware_types = [
+            {"name": "mcuboot-app", "address": "0x00008000"},
+            {"name": "bootloader", "address": "0x00000000"}
+        ]
 
         self.setWindowTitle("Flash Configuration")
         self.resize(300, 200)
 
-        self.addrinfo = QLabel("Enter the Flash Address (default 0x00008000)")
+        self.addrinfo = QLabel("Firmware type (used to determine address):")
         self.ifaceinfo = QLabel("Enter the Interface (default stlink)")
 
-        self.addrbox = QTextEdit()
+        self.addrbox = QComboBox()
         self.ifacebox = QTextEdit()
 
         self.savebtn = QPushButton("Save configuration")
@@ -175,6 +186,9 @@ class ConfDialog(QDialog):
 
         conflayout = QVBoxLayout()
         confbuttonrow = QHBoxLayout()
+
+        for firmware in self.firmware_types:
+            self.addrbox.addItem(firmware["name"], firmware["address"])
 
         conflayout.addWidget(self.addrinfo)
         conflayout.addWidget(self.addrbox)
@@ -190,37 +204,32 @@ class ConfDialog(QDialog):
 
         self.setLayout(conflayout)
 
-        try:
-            with open("conf.dat", "rb+") as f:
-                data = pickle.load(f)
-                default_addr = data[0]
-                default_iface = data[1]
-                self.addrbox.setText(default_addr)
-                self.ifacebox.setText(default_iface)
-        except OSError:
-            self.addrbox.setText(default_addr)
-            self.ifacebox.setText(default_iface)
+        address, interface = read_config_file(self.status)
+        self.addrbox.setCurrentIndex(self.get_firmware_index(address))
+        self.ifacebox.setText(interface)
 
+        self.addrbox.setCurrentIndex(0)
         self.infobtn.clicked.connect(self.infoButton)
         self.savebtn.clicked.connect(self.saveconf)
 
         self.setWindowModality(Qt.ApplicationModal)
 
+    def get_firmware_index(self, address:str):
+        for i, firmware in enumerate(self.firmware_types):
+            if firmware["address"] == address:
+                return i
+        return 0
+
     def saveconf(self, s):
-        addr = self.addrbox.toPlainText() or "0x00008000"
+        addr = self.addrbox.currentData()
         iface = self.ifacebox.toPlainText() or "stlink.cfg"
 
-        if int(addr, 0) <= 0x00075000 and int(addr, 0) >= 0:
-            try:
-                with open("conf.dat", "wb+") as f:
-                    pickle.dump((addr, iface), f)
-                self.status.setText("Configuration Saved.")
-            except OSError:
-                self.status.setText("Unable to write configuration file!")
-        else:
-            self.status.setText(
-                "Flash address not in the valid range (0x0 - 0x00075000)"
-            )
+        try:
+            with open("conf.dat", "wb+") as f:
+                pickle.dump((addr, iface), f)
+            self.status.setText("Configuration Saved.")
+        except OSError:
+            self.status.setText("Unable to write configuration file!")
 
     def infoButton(self, s):
         dlg = InfoDialog()
@@ -242,12 +251,12 @@ class InfoDialog(QDialog):
         either ST-Link, J-Link etc.
 
         When first using the software, it is recommended that you
-        setup the configuration by choosing the appropriate flashing
-        address and flashing interface.
+        setup the configuration by choosing the appropriate firmware
+        type and flashing interface.
 
-        The possible addresses are:
-        0x00 (for the bootloader)
-        0x00008000 (for mcuboot-app)
+        The possible firmware types are:
+        * bootloader
+        * mcuboot-app
 
         For the interface, the options available are dependent on the
         (*.cfg) provided by the xpack-openOCD itself. For example:
