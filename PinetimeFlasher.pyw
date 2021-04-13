@@ -173,7 +173,7 @@ class ConfDialog(QDialog):
         self.resize(300, 200)
 
         self.addrinfo = QLabel("Firmware type (used to determine address):")
-        self.ifaceinfo = QLabel("Enter the Interface (default stlink)")
+        self.ifaceinfo = QLabel("Enter the interface (default: stlink.cfg)")
 
         self.addrbox = QComboBox()
         self.ifacebox = QPlainTextEdit()
