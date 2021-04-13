@@ -74,8 +74,6 @@ class ptflasher(QMainWindow):
         if self.p:  # if process is already running
             return
 
-        global progress
-
         self.progress.setValue(0)
 
         source = self.filedir.toPlainText()
@@ -137,8 +135,6 @@ class ptflasher(QMainWindow):
                 self.status.setText("Verifying...")
 
     def filesearch(self):
-        global progress, filedir
-
         datafile = self.filedialog.getOpenFileName(
             caption="Select firmware file to flash...",
             directory=str(Path.home() / "Downloads"),
@@ -210,7 +206,6 @@ class ConfDialog(QDialog):
         self.setWindowModality(Qt.ApplicationModal)
 
     def saveconf(self, s):
-        global addrbox, ifacebox, status
         addr = self.addrbox.toPlainText() or "0x00008000"
         iface = self.ifacebox.toPlainText() or "stlink.cfg"
 
@@ -235,9 +230,6 @@ class ConfDialog(QDialog):
 class InfoDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
-
-        default_addr = "0x00008000"
-        default_iface = "stlink.cfg"
 
         self.setWindowTitle("About PineTime Flasher")
         self.resize(450, 200)
