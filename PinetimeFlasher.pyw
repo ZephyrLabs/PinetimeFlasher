@@ -69,8 +69,6 @@ class ptflasher(QMainWindow):
 
         self.status = QLabel("Ready.")
 
-        self.filedialog = QFileDialog()
-
         layout = QVBoxLayout()
 
         layout.addWidget(self.info)
@@ -144,7 +142,8 @@ class ptflasher(QMainWindow):
                 self.status.setText("Verifying...")
 
     def filesearch(self):
-        datafile = self.filedialog.getOpenFileName(
+        filedialog = QFileDialog()
+        datafile = filedialog.getOpenFileName(
             caption="Select firmware file to flash...",
             directory=str(Path.home() / "Downloads"),
             filter="PineTime Firmware (*.bin *.hex)",
