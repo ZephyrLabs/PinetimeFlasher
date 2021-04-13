@@ -149,7 +149,7 @@ class ptflasher(QMainWindow):
             filter="PineTime Firmware (*.bin *.hex)",
         )
 
-        if datafile[0] != "":
+        if datafile[0]:
             self.filedir.setPlainText(datafile[0])
             self.progress.setValue(0)
 
