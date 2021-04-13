@@ -207,7 +207,6 @@ class ConfDialog(QDialog):
         self.addrbox.setCurrentIndex(self.get_firmware_index(address))
         self.ifacebox.setPlainText(interface)
 
-        self.addrbox.setCurrentIndex(0)
         self.infobtn.clicked.connect(self.infoButton)
         self.savebtn.clicked.connect(self.saveconf)
 
