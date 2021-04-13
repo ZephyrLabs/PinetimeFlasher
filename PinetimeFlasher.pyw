@@ -245,8 +245,8 @@ class InfoDialog(QDialog):
         vbox = QVBoxLayout()
         text = """
         PineTime Flasher is a simple GUI software written in Python,
-        using the xpack-openOCD tool for flashing the PineTime with
-        either ST-Link, J-Link etc.
+        that uses the xpack-openOCD tool for flashing the PineTime
+        with ST-Link, J-Link etc.
 
         When first using the software, it is recommended that you
         setup the configuration by choosing the appropriate firmware
