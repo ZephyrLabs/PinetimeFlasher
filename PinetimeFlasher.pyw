@@ -53,8 +53,7 @@ class ptflasher(QMainWindow):
 
         self.info = QLabel("Enter The Path Of The File To Be Flashed")
 
-        self.filedir = QTextEdit()
-        filedir = self.filedir.toPlainText()
+        self.filedir = QPlainTextEdit()
 
         self.progress = QProgressBar()
         self.progress.setMinimum(0)
@@ -177,7 +176,7 @@ class ConfDialog(QDialog):
         self.ifaceinfo = QLabel("Enter the Interface (default stlink)")
 
         self.addrbox = QComboBox()
-        self.ifacebox = QTextEdit()
+        self.ifacebox = QPlainTextEdit()
 
         self.savebtn = QPushButton("Save configuration")
         self.infobtn = QPushButton("More info")
@@ -206,7 +205,7 @@ class ConfDialog(QDialog):
 
         address, interface = read_config_file(self.status)
         self.addrbox.setCurrentIndex(self.get_firmware_index(address))
-        self.ifacebox.setText(interface)
+        self.ifacebox.setPlainText(interface)
 
         self.addrbox.setCurrentIndex(0)
         self.infobtn.clicked.connect(self.infoButton)
@@ -214,7 +213,7 @@ class ConfDialog(QDialog):
 
         self.setWindowModality(Qt.ApplicationModal)
 
-    def get_firmware_index(self, address:str):
+    def get_firmware_index(self, address: str):
         for i, firmware in enumerate(self.firmware_types):
             if firmware["address"] == address:
                 return i
