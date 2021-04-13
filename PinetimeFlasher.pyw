@@ -151,7 +151,7 @@ class ptflasher(QMainWindow):
         )
 
         if datafile[0] != "":
-            self.filedir.setText(datafile[0])
+            self.filedir.setPlainText(datafile[0])
             self.progress.setValue(0)
 
     def confButton(self, s):
