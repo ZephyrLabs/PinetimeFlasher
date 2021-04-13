@@ -253,8 +253,8 @@ class InfoDialog(QDialog):
         type and flashing interface.
 
         The possible firmware types are:
-        * bootloader
         * mcuboot-app
+        * bootloader
 
         For the interface, the options available are dependent on the
         (*.cfg) provided by the xpack-openOCD itself. For example:
