@@ -240,30 +240,25 @@ class InfoDialog(QDialog):
         super().__init__(parent=parent)
 
         self.setWindowTitle("About PineTime Flasher")
-        self.resize(450, 200)
+        self.resize(300, 200)
 
         vbox = QVBoxLayout()
-        text = """
-        PineTime Flasher is a simple GUI software written in Python,
-        that uses the xpack-openOCD tool for flashing the PineTime
-        with ST-Link, J-Link etc.
+        textView = QLabel(
+"""PineTime Flasher is a simple GUI software written in Python,
+that uses the xpack-openOCD tool for flashing the PineTime
+with ST-Link, J-Link etc.
 
-        When first using the software, it is recommended that you
-        setup the configuration by choosing the appropriate firmware
-        type and flashing interface.
+When first using the software, it is recommended that you
+setup the configuration by choosing the appropriate firmware
+type and flashing interface.
 
-        The possible firmware types are:
-        * mcuboot-app
-        * bootloader
+The possible firmware types are:
+* mcuboot-app
+* bootloader
 
-        For the interface, the options available are dependent on the
-        (*.cfg) provided by the xpack-openOCD itself. For example:
-        stlink.cfg or jlink.cfg"""
-
-        textView = QPlainTextEdit()
-        textView.setPlainText(text)
-        textView.setReadOnly(True)
-
+For the interface, the options available are dependent on the
+(*.cfg) provided by the xpack-openOCD itself. For example:
+stlink.cfg or jlink.cfg""")
         vbox.addWidget(textView)
         self.setLayout(vbox)
 
