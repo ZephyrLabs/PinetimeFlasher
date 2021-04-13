@@ -89,33 +89,34 @@ class ptflasher(QMainWindow):
 
         self.progress.setValue(10)
 
-        if os.path.exists(source):
-            if shutil.which("openocd"):
-                self.status.setText("Flashing...")
-                self.status.repaint()
-
-                command = (
-                    'openocd -f "interface/{}" '
-                    '-f "target/nrf52.cfg" -c "init" '
-                    '-c "program {} {} verify reset exit"'
-                ).format(default_iface, source, default_addr)
-
-                self.p = QProcess()  # Keep a reference while it's running
-                self.p.finished.connect(self.flash_finished)  # Clean up
-                self.p.readyReadStandardError.connect(self.handle_stderr)
-                self.p.start(command)
-
-            else:
-                self.progress.setValue(0)
-                self.status.setText("OpenOCD not found in system path!")
-
-        elif source == "":
+        if source == "":
             self.status.setText("Set location of file to be flashed!")
             self.progress.setValue(0)
+            return
 
-        else:
+        if not os.path.exists(source):
             self.status.setText("File does not exist!")
             self.progress.setValue(0)
+            return
+
+        if not shutil.which("openocd"):
+            self.status.setText("OpenOCD not found in system path!")
+            self.progress.setValue(0)
+            return
+
+        self.status.setText("Flashing...")
+        self.status.repaint()
+
+        command = (
+            'openocd -f "interface/{}" '
+            '-f "target/nrf52.cfg" -c "init" '
+            '-c "program {} {} verify reset exit"'
+        ).format(default_iface, source, default_addr)
+
+        self.p = QProcess()  # Keep a reference while it's running
+        self.p.finished.connect(self.flash_finished)  # Clean up
+        self.p.readyReadStandardError.connect(self.handle_stderr)
+        self.p.start(command)
 
     def flash_finished(self):
         if self.p.exitCode() == 0:
