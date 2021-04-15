@@ -110,6 +110,10 @@ class ptflasher(QMainWindow):
             self.progress.setValue(0)
             return
 
+        self.searchbtn.setEnabled(False)
+        self.flashbtn.setEnabled(False)
+        self.confbtn.setEnabled(False)
+
         self.status.setText("Flashing...")
         self.status.repaint()
 
@@ -130,7 +134,12 @@ class ptflasher(QMainWindow):
         else:
             self.status.setText("Something probably went wrong :(")
             self.progress.setValue(0)
+
         self.p = None
+
+        self.searchbtn.setEnabled(True)
+        self.flashbtn.setEnabled(True)
+        self.confbtn.setEnabled(True)
 
     def handle_stderr(self):
         data = self.p.readAllStandardError()
