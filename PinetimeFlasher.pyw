@@ -59,6 +59,7 @@ class ptflasher(QMainWindow):
         self.progress.setMinimum(0)
         self.progress.setMaximum(100)
         self.progress.setValue(0)
+        self.progress.setEnabled(False)
 
         self.flashbtn = QPushButton("Start flashing")
         self.searchbtn = QPushButton("Search for file")
@@ -66,6 +67,8 @@ class ptflasher(QMainWindow):
         self.flashbtn.clicked.connect(self.startflash)
         self.searchbtn.clicked.connect(self.filesearch)
         self.confbtn.clicked.connect(self.confButton)
+        self.filedir.textChanged.connect(self.update_control_statuses)
+        self.flashbtn.setEnabled(False)
 
         self.status = QLabel("Ready.")
 
@@ -84,6 +87,22 @@ class ptflasher(QMainWindow):
 
         self.setCentralWidget(w)
 
+    def update_control_statuses(self):
+        def enable_buttons(enable: bool, reason: str):
+            self.flashbtn.setEnabled(enable)
+            self.progress.setEnabled(enable)
+            self.status.setText(reason)
+
+        firmware = self.filedir.toPlainText()
+        if not firmware:
+            enable_buttons(False, "Set location of file to be flashed!")
+        elif not os.path.exists(firmware):
+            enable_buttons(False, "File does not exist!")
+        elif not shutil.which("openocd"):
+            enable_buttons(False, "OpenOCD not found in system path!")
+        else:
+            enable_buttons(True, "Ready to flash!")
+
     def startflash(self):
         if self.p:  # if process is already running
             return
@@ -93,27 +112,10 @@ class ptflasher(QMainWindow):
         source = self.filedir.toPlainText()
         address, interface = read_config_file(self.status)
 
-        self.progress.setValue(10)
-
-        if source == "":
-            self.status.setText("Set location of file to be flashed!")
-            self.progress.setValue(0)
-            return
-
-        if not os.path.exists(source):
-            self.status.setText("File does not exist!")
-            self.progress.setValue(0)
-            return
-
-        if not shutil.which("openocd"):
-            self.status.setText("OpenOCD not found in system path!")
-            self.progress.setValue(0)
-            return
-
         self.searchbtn.setEnabled(False)
-        self.flashbtn.setEnabled(False)
         self.confbtn.setEnabled(False)
 
+        self.progress.setValue(10)
         self.status.setText("Flashing...")
         self.status.repaint()
 
@@ -138,7 +140,6 @@ class ptflasher(QMainWindow):
         self.p = None
 
         self.searchbtn.setEnabled(True)
-        self.flashbtn.setEnabled(True)
         self.confbtn.setEnabled(True)
 
     def handle_stderr(self):
