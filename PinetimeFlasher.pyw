@@ -61,7 +61,7 @@ class ptflasher(QMainWindow):
         self.progress.setValue(0)
 
         self.flashbtn = QPushButton("Start flashing")
-        self.searchbtn = QPushButton("Search for File")
+        self.searchbtn = QPushButton("Search for file")
         self.confbtn = QPushButton("Configure flashing options...")
         self.flashbtn.clicked.connect(self.startflash)
         self.searchbtn.clicked.connect(self.filesearch)
@@ -243,7 +243,7 @@ class InfoDialog(QDialog):
         textView = QLabel(
 """PineTime Flasher is a simple GUI software written in Python,
 that uses the xpack-openOCD tool for flashing the PineTime
-with ST-Link, J-Link etc.
+with SWD debuggers such as the ST-Link and J-Link.
 
 When first using the software, it is recommended that you
 setup the configuration by choosing the appropriate firmware
