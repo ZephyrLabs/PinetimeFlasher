@@ -112,23 +112,27 @@ class ptflasher(QMainWindow):
             self.progress.setValue(10)
 
             if os.path.exists(source):
-                if shutil.which('openocd') is not None:
-                    self.status.setText('Flashing...')
-                    self.status.repaint()
+                if source[-3:] in ("bin", "hex"):  # supported file types filter
+                    if shutil.which('openocd') is not None:
+                        self.status.setText('Flashing...')
+                        self.status.repaint()
 
-                    command = ('openocd -f "interface/{}" '
-                               '-f "target/nrf52.cfg" -c "init" '
-                               '-c "program {} {} verify reset exit"').format(
-                        default_iface, source, default_addr)
+                        command = ('openocd -f "interface/{}" '
+                                '-f "target/nrf52.cfg" -c "init" '
+                                '-c "program {} {} verify reset exit"').format(
+                            default_iface, source, default_addr)
 
-                    self.p = QProcess()  # Keep a reference while it's running
-                    self.p.finished.connect(self.flash_finished)  # Clean up
-                    self.p.readyReadStandardError.connect(self.handle_stderr)
-                    self.p.start(command)
+                        self.p = QProcess()  # Keep a reference while it's running
+                        self.p.finished.connect(self.flash_finished)  # Clean up
+                        self.p.readyReadStandardError.connect(self.handle_stderr)
+                        self.p.start(command)
 
+                    else:
+                        self.progress.setValue(0)
+                        self.status.setText("OpenOCD not found in system path!")
                 else:
                     self.progress.setValue(0)
-                    self.status.setText("OpenOCD not found in system path!")
+                    self.status.setText("Unsupported file type!")       
 
             elif source == '':
                 self.status.setText("Set location of file to be flashed!")
