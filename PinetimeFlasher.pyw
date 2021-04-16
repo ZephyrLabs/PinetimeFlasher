@@ -95,6 +95,12 @@ class ptflasher(QMainWindow):
             source = self.filedir.toPlainText()
 
             try:
+                if source[0:8] == "file:///":
+                    source = source[8:]
+            except:
+                pass
+
+            try:
                 with open('conf.dat', 'rb+') as f:
                     data = pickle.load(f)
                     default_addr = data[0]
