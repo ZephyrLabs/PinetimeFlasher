@@ -112,7 +112,7 @@ class ptflasher(QMainWindow):
             self.progress.setValue(10)
 
             if os.path.exists(source):
-                if source[-3:] in ("bin", "hex"):  # supported file types filter
+                if os.path.splitext(source)[-1] in (".bin", ".hex"):  # supported file types filter
                     if shutil.which('openocd') is not None:
                         self.status.setText('Flashing...')
                         self.status.repaint()
