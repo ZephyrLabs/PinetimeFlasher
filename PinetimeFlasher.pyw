@@ -52,7 +52,6 @@ class ptflasher(QMainWindow):
         self.resize(300, 200)
 
         self.info = QLabel("Enter the path of the file to be flashed")
-
         self.filedir = QPlainTextEdit()
 
         self.progress = QProgressBar()
@@ -64,22 +63,24 @@ class ptflasher(QMainWindow):
         self.flashbtn = QPushButton("Start flashing")
         self.searchbtn = QPushButton("Search for file")
         self.confbtn = QPushButton("Configure flashing options...")
+        self.infobtn = QPushButton("More info")
+        self.status = QLabel("Ready.")
+
         self.flashbtn.clicked.connect(self.startflash)
         self.searchbtn.clicked.connect(self.filesearch)
         self.confbtn.clicked.connect(self.confButton)
         self.filedir.textChanged.connect(self.update_control_statuses)
+        self.infobtn.clicked.connect(self.info_button)
         self.flashbtn.setEnabled(False)
 
-        self.status = QLabel("Ready.")
-
         layout = QVBoxLayout()
-
         layout.addWidget(self.info)
         layout.addWidget(self.filedir)
         layout.addWidget(self.progress)
         layout.addWidget(self.searchbtn)
         layout.addWidget(self.flashbtn)
         layout.addWidget(self.confbtn)
+        layout.addWidget(self.infobtn)
         layout.addWidget(self.status)
 
         w = QWidget()
@@ -167,6 +168,10 @@ class ptflasher(QMainWindow):
         dlg = ConfDialog()
         dlg.exec()
 
+    def info_button(self):
+        dlg = InfoDialog()
+        dlg.exec()
+
 
 # Configuration class and UI
 class ConfDialog(QDialog):
@@ -190,7 +195,6 @@ class ConfDialog(QDialog):
         self.ifacebox = QPlainTextEdit()
 
         self.savebtn = QPushButton("Save configuration")
-        self.infobtn = QPushButton("More info")
 
         self.status = QLabel("")
 
@@ -201,11 +205,7 @@ class ConfDialog(QDialog):
         conflayout.addWidget(self.addrbox)
         conflayout.addWidget(self.ifaceinfo)
         conflayout.addWidget(self.ifacebox)
-
-        confbuttonrow.addWidget(self.savebtn)
-        confbuttonrow.addWidget(self.infobtn)
-
-        conflayout.addLayout(confbuttonrow)
+        conflayout.addWidget(self.savebtn)
         conflayout.addWidget(self.status)
 
         self.setLayout(conflayout)
@@ -214,7 +214,6 @@ class ConfDialog(QDialog):
         self.addrbox.setCurrentIndex(self.get_firmware_index(address))
         self.ifacebox.setPlainText(interface)
 
-        self.infobtn.clicked.connect(self.infoButton)
         self.savebtn.clicked.connect(self.saveconf)
 
         self.setWindowModality(Qt.ApplicationModal)
@@ -235,10 +234,6 @@ class ConfDialog(QDialog):
             self.status.setText("Configuration Saved.")
         except OSError:
             self.status.setText("Unable to write configuration file!")
-
-    def infoButton(self, s):
-        dlg = InfoDialog()
-        dlg.exec()
 
 
 # Info screen class and UI
