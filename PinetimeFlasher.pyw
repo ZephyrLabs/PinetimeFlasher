@@ -15,10 +15,9 @@ import pickle
 from typing import List
 
 
-def add_openocd_to_system_path(status_notice: QLabel):
+def add_openocd_to_system_path():
     openocd_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'openocd', 'bin')
     os.environ["PATH"] = os.environ["PATH"] + os.pathsep + openocd_path
-    status_notice.setText("OpenOCD downloaded and added to system path.")
 
 
 # Returns percentage progress value in response to key phrases from OpenOCD
@@ -98,8 +97,6 @@ class ptflasher(QMainWindow):
         w.setLayout(layout)
 
         self.setCentralWidget(w)
-        if os.path.exists('openocd'):
-            add_openocd_to_system_path(self.status)
 
     def update_control_statuses(self):
         def enable_buttons(enable: bool, reason: str):
@@ -212,8 +209,6 @@ class ConfDialog(QDialog):
         self.status = QLabel("")
 
         conflayout = QVBoxLayout()
-        confbuttonrow = QHBoxLayout()
-
         conflayout.addWidget(self.addrinfo)
         conflayout.addWidget(self.addrbox)
         conflayout.addWidget(self.ifaceinfo)
@@ -221,7 +216,6 @@ class ConfDialog(QDialog):
         conflayout.addWidget(self.savebtn)
         conflayout.addWidget(self.openocd_btn)
         conflayout.addWidget(self.status)
-
         self.setLayout(conflayout)
 
         address, interface = read_config_file(self.status)
@@ -269,7 +263,7 @@ class ConfDialog(QDialog):
             return
 
         self.unpack_archive(archive_file)
-        add_openocd_to_system_path(self.status)
+        self.status.setText("OpenOCD successfully downloaded.")
         os.remove(archive_file)
         os.remove(hash_file)
 
@@ -376,6 +370,8 @@ if __name__ == "__main__":
     qp.setColor(QPalette.Window, Qt.gray)
     qp.setColor(QPalette.Button, Qt.gray)
     app.setPalette(qp)
+
+    add_openocd_to_system_path()
 
     win = ptflasher()
     win.show()
