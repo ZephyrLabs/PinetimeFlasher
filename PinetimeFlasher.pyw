@@ -301,6 +301,7 @@ class ConfDialog(QDialog):
             "MacOS": "darwin",
         }.get(platform.system(), "")
         arch = {
+            "AMD64": "x64",
             "x86_64": "x64",
             "i386": "ia32"
         }.get(platform.machine(), "")
