@@ -257,8 +257,10 @@ class ConfDialog(QDialog):
         content = json.loads(details)
 
         archive_file, hash_file = self.get_github_assets(content["assets"])
-        computed_hash, provided_hash = self.get_hashes(archive_file, hash_file)
-        if computed_hash != provided_hash:
+        if not archive_file or not hash_file:
+            return
+
+        if not self.compare_hashes(archive_file, hash_file):
             self.status.setText("Hashes do not match - corrupted download!")
             return
 
@@ -267,15 +269,15 @@ class ConfDialog(QDialog):
         os.remove(archive_file)
         os.remove(hash_file)
 
-    def get_hashes(self, archive_file, hash_file):
+    def compare_hashes(self, archive_file, hash_file):
         self.status.setText("Computing hashes OpenOCD...")
         with open(archive_file, "rb") as fd:
             hasher = hashlib.sha256()
             hasher.update(fd.read())
             computed_hash = hasher.hexdigest()
         with open(hash_file, "r") as fd:
-            provided_hash= fd.read().split(" ")[0]   # format: "<hash> <filename>"
-        return computed_hash, provided_hash
+            provided_hash = fd.read().split(" ")[0]   # format: "<hash> <filename>"
+        return computed_hash == provided_hash
 
     def unpack_archive(self, archive):
         """
