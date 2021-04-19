@@ -62,6 +62,7 @@ class ptflasher(QMainWindow):
     """
     Main Program Class and UI
     """
+    openocd_log = ""
 
     def __init__(self):
         super().__init__()
@@ -146,6 +147,7 @@ class ptflasher(QMainWindow):
         if self.p:  # don't continue if process already running
             return
 
+        self.openocd_log = ""
         self.progress.setValue(0)
 
         source = self.filedir.toPlainText()
@@ -179,6 +181,8 @@ class ptflasher(QMainWindow):
         else:
             self.status.setText("Something probably went wrong :(")
             self.progress.setValue(0)
+            dlg = LogViewDialog(self.openocd_log)
+            dlg.exec()
 
         self.p = None
 
@@ -192,6 +196,7 @@ class ptflasher(QMainWindow):
         """
         data = self.p.readAllStandardError()
         stderr = bytes(data).decode("utf8")
+        self.openocd_log = self.openocd_log + stderr
         progress = progress_parser(stderr)
         if progress:
             self.progress.setValue(progress)
@@ -341,8 +346,8 @@ class ConfDialog(QDialog):
 
     def get_github_assets(self, assets: List[str]):
         """
-        Determine which package needs to be downloaded for OS/architecture 
-        and attempt to download it. 
+        Determine which package needs to be downloaded for OS/architecture
+        and attempt to download it.
         """
         plat = {
             "Windows": "win32",
@@ -402,6 +407,28 @@ For the interface, the options available are dependent on the
 stlink.cfg or jlink.cfg""")
 
         vbox.addWidget(textView)
+        self.setLayout(vbox)
+
+        self.setWindowModality(Qt.ApplicationModal)
+
+
+class LogViewDialog(QDialog):
+    """
+    Log view class and UI
+    """
+
+    def __init__(self, openocd_log, parent=None):
+        super().__init__(parent=parent)
+
+        self.setWindowTitle("OpenOCD Flash Output")
+        self.resize(650, 300)
+
+        vbox = QVBoxLayout()
+        infoText = QLabel("The flash operation encounter an error. Read the below log to find out why.")
+        logView = QPlainTextEdit(openocd_log)
+
+        vbox.addWidget(infoText)
+        vbox.addWidget(logView)
         self.setLayout(vbox)
 
         self.setWindowModality(Qt.ApplicationModal)
