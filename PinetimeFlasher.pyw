@@ -124,6 +124,7 @@ class ptflasher(QMainWindow):
         address, interface = read_config_file(self.status)
 
         self.searchbtn.setEnabled(False)
+        self.flashbtn.setEnabled(False)
         self.confbtn.setEnabled(False)
 
         self.progress.setValue(10)
@@ -151,6 +152,7 @@ class ptflasher(QMainWindow):
         self.p = None
 
         self.searchbtn.setEnabled(True)
+        self.flashbtn.setEnabled(True)
         self.confbtn.setEnabled(True)
 
     def handle_stderr(self):
