@@ -264,6 +264,7 @@ class ConfDialog(QDialog):
         Download and unpack OpenOCD for the current platform, then add it to the system path.
         """
         self.status.setText("Finding latest OpenOCD release...")
+        self.status.repaint()
 
         base_url = "https://api.github.com/repos"
         response = requests.get(f"{base_url}/xpack-dev-tools/openocd-xpack/releases/latest")
@@ -286,6 +287,7 @@ class ConfDialog(QDialog):
 
     def compare_hashes(self, archive_file, hash_file):
         self.status.setText("Computing hashes OpenOCD...")
+        self.status.repaint()
         with open(archive_file, "rb") as fd:
             hasher = hashlib.sha256()
             hasher.update(fd.read())
@@ -301,6 +303,7 @@ class ConfDialog(QDialog):
         currently packed).
         """
         self.status.setText("Unpacking OpenOCD...")
+        self.status.repaint()
         tmpdir_name = "openocd_tmp"
         shutil.unpack_archive(archive, extract_dir=tmpdir_name)
         tmpdir_contents = os.listdir(tmpdir_name)
@@ -332,6 +335,7 @@ class ConfDialog(QDialog):
         assert len(download_urls) == 2
 
         self.status.setText("Downloading OpenOCD from GitHub...")
+        self.status.repaint()
         if not os.path.exists(filenames[0]) and not os.path.exists(filenames[1]):
             wget.download(download_urls[0])
             wget.download(download_urls[1])
