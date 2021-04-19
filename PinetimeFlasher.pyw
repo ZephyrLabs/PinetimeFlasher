@@ -74,7 +74,7 @@ class ptflasher(QMainWindow):
         self.searchbtn = QPushButton("Search for file")
         self.confbtn = QPushButton("Configure flashing options...")
         self.infobtn = QPushButton("More info")
-        self.status = QLabel("Ready.")
+        self.status = QLabel("")
 
         self.flashbtn.clicked.connect(self.startflash)
         self.searchbtn.clicked.connect(self.filesearch)
@@ -177,6 +177,7 @@ class ptflasher(QMainWindow):
     def confButton(self, s):
         dlg = ConfDialog()
         dlg.exec()
+        self.update_control_statuses()
 
     def info_button(self):
         dlg = InfoDialog()
