@@ -105,10 +105,22 @@ class ptflasher(QMainWindow):
             self.status.setText(reason)
 
         firmware = self.filedir.toPlainText()
+
+        if platform.system() == "Windows":
+            if firmware[0:8] == "file:///":
+                firmware = firmware[8:]
+                self.filedir.setPlainText(firmware)
+        else:
+            if firmware[0:7] == "file://":
+                firmware = firmware[7:]
+                self.filedir.setPlainText(firmware)
+
         if not firmware:
             enable_buttons(False, "Set location of file to be flashed!")
         elif not os.path.exists(firmware):
             enable_buttons(False, "File does not exist!")
+        elif not os.path.splitext(firmware)[-1] in (".bin", ".hex"):
+            enable_buttons(False, "Not a supported file type (.bin, .hex)")
         elif not shutil.which("openocd"):
             enable_buttons(False, "OpenOCD not found in system path!")
         else:
