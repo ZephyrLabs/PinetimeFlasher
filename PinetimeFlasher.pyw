@@ -18,12 +18,17 @@ __version__ = "0.4.0"
 
 
 def add_openocd_to_system_path():
+    """
+    Adds the directory 'openocd' to the path, relative to the app
+    """
     openocd_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'openocd', 'bin')
     os.environ["PATH"] = os.environ["PATH"] + os.pathsep + openocd_path
 
 
-# Returns percentage progress value in response to key phrases from OpenOCD
 def progress_parser(output):
+    """
+    Returns percentage progress value in response to key phrases from OpenOCD
+    """
     if "** Programming Started **" in output:
         return 30
     elif "** Programming Finished **" in output:
@@ -53,8 +58,10 @@ def read_config_file(status_notice: QLabel) -> (str, str):
     return "0x00008000", "stlink.cfg"
 
 
-# Main Program Class and UI
 class ptflasher(QMainWindow):
+    """
+    Main Program Class and UI
+    """
     def __init__(self):
         super().__init__()
 
@@ -101,6 +108,9 @@ class ptflasher(QMainWindow):
         self.setCentralWidget(w)
 
     def update_control_statuses(self):
+        """
+        Enable or disable buttons and update status messages as needed
+        """
         def enable_buttons(enable: bool, reason: str):
             self.flashbtn.setEnabled(enable)
             self.progress.setEnabled(enable)
@@ -129,7 +139,10 @@ class ptflasher(QMainWindow):
             enable_buttons(True, "Ready to flash!")
 
     def startflash(self):
-        if self.p:  # if process is already running
+        """
+        Start the actual flashing process
+        """
+        if self.p:  # don't continue if process already running
             return
 
         self.progress.setValue(0)
@@ -157,6 +170,9 @@ class ptflasher(QMainWindow):
         self.p.start(command)
 
     def flash_finished(self):
+        """
+        Handle flash completion
+        """
         if self.p.exitCode() == 0:
             self.status.setText("Success!")
         else:
@@ -170,6 +186,9 @@ class ptflasher(QMainWindow):
         self.confbtn.setEnabled(True)
 
     def handle_stderr(self):
+        """
+        Capture output during flashing and process it
+        """
         data = self.p.readAllStandardError()
         stderr = bytes(data).decode("utf8")
         progress = progress_parser(stderr)
@@ -200,8 +219,10 @@ class ptflasher(QMainWindow):
         dlg.exec()
 
 
-# Configuration class and UI
 class ConfDialog(QDialog):
+    """
+    Configuration class and UI
+    """
     def __init__(self, parent=None):
         super().__init__(parent=parent)
 
@@ -317,6 +338,10 @@ class ConfDialog(QDialog):
             shutil.move(tmpdir_name, "openocd")
 
     def get_github_assets(self, assets: List[str]):
+        """
+        Determine which package needs to be downloaded for OS/architecture 
+        and attempt to download it. 
+        """
         plat = {
             "Windows": "win32",
             "Linux": "linux",
@@ -346,8 +371,10 @@ class ConfDialog(QDialog):
         return filenames
 
 
-# Info screen class and UI
 class InfoDialog(QDialog):
+    """
+    Info screen class and UI
+    """
     def __init__(self, parent=None):
         super().__init__(parent=parent)
 
@@ -376,7 +403,6 @@ stlink.cfg or jlink.cfg""")
         self.setWindowModality(Qt.ApplicationModal)
 
 
-# Program entrypoint
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
