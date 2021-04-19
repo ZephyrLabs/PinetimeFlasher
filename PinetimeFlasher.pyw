@@ -14,6 +14,8 @@ from PyQt5.QtGui import *
 import pickle
 from typing import List
 
+__version__ = "0.4.0"
+
 
 def add_openocd_to_system_path():
     openocd_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'openocd', 'bin')
@@ -349,12 +351,11 @@ class InfoDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
 
-        self.setWindowTitle("About PineTime Flasher")
+        self.setWindowTitle("About PineTime Flasher v{}".format(__version__))
         self.resize(300, 200)
 
         vbox = QVBoxLayout()
-        textView = QLabel(
-"""PineTime Flasher is a simple GUI software written in Python,
+        textView = QLabel("""PineTime Flasher is a simple GUI software written in Python,
 that uses the xpack-openOCD tool for flashing the PineTime
 with SWD debuggers such as the ST-Link and J-Link.
 
