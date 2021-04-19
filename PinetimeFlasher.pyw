@@ -62,6 +62,7 @@ class ptflasher(QMainWindow):
     """
     Main Program Class and UI
     """
+
     def __init__(self):
         super().__init__()
 
@@ -223,6 +224,7 @@ class ConfDialog(QDialog):
     """
     Configuration class and UI
     """
+
     def __init__(self, parent=None):
         super().__init__(parent=parent)
 
@@ -375,6 +377,7 @@ class InfoDialog(QDialog):
     """
     Info screen class and UI
     """
+
     def __init__(self, parent=None):
         super().__init__(parent=parent)
 
@@ -397,6 +400,7 @@ The possible firmware types are:
 For the interface, the options available are dependent on the
 (*.cfg) provided by the xpack-openOCD itself. For example:
 stlink.cfg or jlink.cfg""")
+
         vbox.addWidget(textView)
         self.setLayout(vbox)
 
@@ -407,8 +411,7 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
 
-    appDir = getattr(sys, "_MEIPASS",
-                     os.path.abspath(os.path.dirname(__file__)))
+    appDir = getattr(sys, "_MEIPASS", os.path.abspath(os.path.dirname(__file__)))
     path_to_icon = os.path.abspath(os.path.join(appDir, "PinetimeFlasher.ico"))
 
     app_icon = QIcon(path_to_icon)
