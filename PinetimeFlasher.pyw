@@ -1,13 +1,23 @@
 #!/usr/bin/env python3
-
+import hashlib
+import platform
 import sys
 import os
 import shutil
+import requests
+import json
+import wget
 from pathlib import Path
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 import pickle
+from typing import List
+
+
+def add_openocd_to_system_path():
+    openocd_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'openocd', 'bin')
+    os.environ["PATH"] = os.environ["PATH"] + os.pathsep + openocd_path
 
 
 # Returns percentage progress value in response to key phrases from OpenOCD
@@ -52,37 +62,57 @@ class ptflasher(QMainWindow):
         self.resize(300, 200)
 
         self.info = QLabel("Enter the path of the file to be flashed")
-
         self.filedir = QPlainTextEdit()
 
         self.progress = QProgressBar()
         self.progress.setMinimum(0)
         self.progress.setMaximum(100)
         self.progress.setValue(0)
+        self.progress.setEnabled(False)
 
         self.flashbtn = QPushButton("Start flashing")
         self.searchbtn = QPushButton("Search for file")
         self.confbtn = QPushButton("Configure flashing options...")
+        self.infobtn = QPushButton("More info")
+        self.status = QLabel("")
+
         self.flashbtn.clicked.connect(self.startflash)
         self.searchbtn.clicked.connect(self.filesearch)
         self.confbtn.clicked.connect(self.confButton)
-
-        self.status = QLabel("Ready.")
+        self.filedir.textChanged.connect(self.update_control_statuses)
+        self.infobtn.clicked.connect(self.info_button)
+        self.flashbtn.setEnabled(False)
 
         layout = QVBoxLayout()
-
         layout.addWidget(self.info)
         layout.addWidget(self.filedir)
         layout.addWidget(self.progress)
         layout.addWidget(self.searchbtn)
         layout.addWidget(self.flashbtn)
         layout.addWidget(self.confbtn)
+        layout.addWidget(self.infobtn)
         layout.addWidget(self.status)
 
         w = QWidget()
         w.setLayout(layout)
 
         self.setCentralWidget(w)
+
+    def update_control_statuses(self):
+        def enable_buttons(enable: bool, reason: str):
+            self.flashbtn.setEnabled(enable)
+            self.progress.setEnabled(enable)
+            self.status.setText(reason)
+
+        firmware = self.filedir.toPlainText()
+        if not firmware:
+            enable_buttons(False, "Set location of file to be flashed!")
+        elif not os.path.exists(firmware):
+            enable_buttons(False, "File does not exist!")
+        elif not shutil.which("openocd"):
+            enable_buttons(False, "OpenOCD not found in system path!")
+        else:
+            enable_buttons(True, "Ready to flash!")
 
     def startflash(self):
         if self.p:  # if process is already running
@@ -93,27 +123,10 @@ class ptflasher(QMainWindow):
         source = self.filedir.toPlainText()
         address, interface = read_config_file(self.status)
 
-        self.progress.setValue(10)
-
-        if source == "":
-            self.status.setText("Set location of file to be flashed!")
-            self.progress.setValue(0)
-            return
-
-        if not os.path.exists(source):
-            self.status.setText("File does not exist!")
-            self.progress.setValue(0)
-            return
-
-        if not shutil.which("openocd"):
-            self.status.setText("OpenOCD not found in system path!")
-            self.progress.setValue(0)
-            return
-
         self.searchbtn.setEnabled(False)
-        self.flashbtn.setEnabled(False)
         self.confbtn.setEnabled(False)
 
+        self.progress.setValue(10)
         self.status.setText("Flashing...")
         self.status.repaint()
 
@@ -138,7 +151,6 @@ class ptflasher(QMainWindow):
         self.p = None
 
         self.searchbtn.setEnabled(True)
-        self.flashbtn.setEnabled(True)
         self.confbtn.setEnabled(True)
 
     def handle_stderr(self):
@@ -165,6 +177,11 @@ class ptflasher(QMainWindow):
     def confButton(self, s):
         dlg = ConfDialog()
         dlg.exec()
+        self.update_control_statuses()
+
+    def info_button(self):
+        dlg = InfoDialog()
+        dlg.exec()
 
 
 # Configuration class and UI
@@ -178,7 +195,7 @@ class ConfDialog(QDialog):
         ]
 
         self.setWindowTitle("Flash Configuration")
-        self.resize(300, 200)
+        self.resize(300, 220)
 
         self.addrinfo = QLabel("Firmware type (used to determine address):")
         self.addrbox = QComboBox()
@@ -189,32 +206,25 @@ class ConfDialog(QDialog):
         self.ifacebox = QPlainTextEdit()
 
         self.savebtn = QPushButton("Save configuration")
-        self.infobtn = QPushButton("More info")
-
+        self.openocd_btn = QPushButton("Download OpenOCD")
         self.status = QLabel("")
 
         conflayout = QVBoxLayout()
-        confbuttonrow = QHBoxLayout()
-
         conflayout.addWidget(self.addrinfo)
         conflayout.addWidget(self.addrbox)
         conflayout.addWidget(self.ifaceinfo)
         conflayout.addWidget(self.ifacebox)
-
-        confbuttonrow.addWidget(self.savebtn)
-        confbuttonrow.addWidget(self.infobtn)
-
-        conflayout.addLayout(confbuttonrow)
+        conflayout.addWidget(self.savebtn)
+        conflayout.addWidget(self.openocd_btn)
         conflayout.addWidget(self.status)
-
         self.setLayout(conflayout)
 
         address, interface = read_config_file(self.status)
         self.addrbox.setCurrentIndex(self.get_firmware_index(address))
         self.ifacebox.setPlainText(interface)
 
-        self.infobtn.clicked.connect(self.infoButton)
         self.savebtn.clicked.connect(self.saveconf)
+        self.openocd_btn.clicked.connect(self.setup_openocd)
 
         self.setWindowModality(Qt.ApplicationModal)
 
@@ -235,9 +245,85 @@ class ConfDialog(QDialog):
         except OSError:
             self.status.setText("Unable to write configuration file!")
 
-    def infoButton(self, s):
-        dlg = InfoDialog()
-        dlg.exec()
+    def setup_openocd(self):
+        """
+        Download and unpack OpenOCD for the current platform, then add it to the system path.
+        """
+        self.status.setText("Finding latest OpenOCD release...")
+
+        base_url = "https://api.github.com/repos"
+        response = requests.get(f"{base_url}/xpack-dev-tools/openocd-xpack/releases/latest")
+
+        details = response.content.decode('utf-8')
+        content = json.loads(details)
+
+        archive_file, hash_file = self.get_github_assets(content["assets"])
+        if not archive_file or not hash_file:
+            return
+
+        if not self.compare_hashes(archive_file, hash_file):
+            self.status.setText("Hashes do not match - corrupted download!")
+            return
+
+        self.unpack_archive(archive_file)
+        self.status.setText("OpenOCD successfully downloaded.")
+        os.remove(archive_file)
+        os.remove(hash_file)
+
+    def compare_hashes(self, archive_file, hash_file):
+        self.status.setText("Computing hashes OpenOCD...")
+        with open(archive_file, "rb") as fd:
+            hasher = hashlib.sha256()
+            hasher.update(fd.read())
+            computed_hash = hasher.hexdigest()
+        with open(hash_file, "r") as fd:
+            provided_hash = fd.read().split(" ")[0]   # format: "<hash> <filename>"
+        return computed_hash == provided_hash
+
+    def unpack_archive(self, archive):
+        """
+        Unpack the archive and shift files so that the files can always be found
+        under 'openocd/' (i.e. without a version number, which is how they are
+        currently packed).
+        """
+        self.status.setText("Unpacking OpenOCD...")
+        tmpdir_name = "openocd_tmp"
+        shutil.unpack_archive(archive, extract_dir=tmpdir_name)
+        tmpdir_contents = os.listdir(tmpdir_name)
+
+        if len(tmpdir_contents) == 1:
+            shutil.move(os.path.join(tmpdir_name, tmpdir_contents[0]), "openocd")
+            os.rmdir(tmpdir_name)
+        else:
+            shutil.move(tmpdir_name, "openocd")
+
+    def get_github_assets(self, assets: List[str]):
+        plat = {
+            "Windows": "win32",
+            "Linux": "linux",
+            "MacOS": "darwin",
+        }.get(platform.system(), "")
+        arch = {
+            "AMD64": "x64",
+            "x86_64": "x64",
+            "i386": "ia32"
+        }.get(platform.machine(), "")
+
+        if not plat or not arch:
+            self.status.setText("Unable to determine appropriate OpenOCD download.")
+            return
+
+        download_urls = [f["browser_download_url"] for f in assets if plat in f["name"] and arch in f["name"]]
+        filenames = [f["name"] for f in assets if plat in f["name"] and arch in f["name"]]
+        assert len(download_urls) == 2
+
+        self.status.setText("Downloading OpenOCD from GitHub...")
+        if not os.path.exists(filenames[0]) and not os.path.exists(filenames[1]):
+            wget.download(download_urls[0])
+            wget.download(download_urls[1])
+
+        filenames.sort()
+        return filenames
 
 
 # Info screen class and UI
@@ -288,6 +374,8 @@ if __name__ == "__main__":
     qp.setColor(QPalette.Window, Qt.gray)
     qp.setColor(QPalette.Button, Qt.gray)
     app.setPalette(qp)
+
+    add_openocd_to_system_path()
 
     win = ptflasher()
     win.show()
