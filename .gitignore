@@ -1,8 +1,9 @@
 # Program config file
 conf.dat
 
-# VSCode workspace settings
+# IDE workspace settings
 .vscode/
+.idea/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -141,3 +142,8 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# OpenOCD files and directories
+openocd/
+openocd_tmp/
+openocd-*

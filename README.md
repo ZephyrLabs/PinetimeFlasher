@@ -1,5 +1,5 @@
 # PinetimeFlasher
-[![Windows PyInstaller Builds](https://github.com/ZephyrLabs/PinetimeFlasher/actions/workflows/pyinstaller-windows.yml/badge.svg?branch=main)](https://github.com/ZephyrLabs/PinetimeFlasher/actions/workflows/pyinstaller-windows.yml)
+[![Windows PyInstaller Builds](https://github.com/pfeerick/PinetimeFlasher/actions/workflows/pyinstaller-windows.yml/badge.svg)](https://github.com/pfeerick/PinetimeFlasher/actions/workflows/pyinstaller-windows.yml)
 
 ![PinetimeFlasher](/PinetimeFlasher.png "PinetimeFlasher")
 
@@ -18,4 +18,4 @@ pip install pyinstaller
 pyinstaller --onefile --icon PinetimeFlasher.ico --add-data PinetimeFlasher.ico;. PinetimeFlasher.pyw
 ```
 
-Note: Pre-made executable available in the [releases](https://github.com/ZephyrLabs/PinetimeFlasher/releases) when a new version is published, as well as [automatic builds by Github Actions](https://github.com/ZephyrLabs/PinetimeFlasher/actions/workflows/pyinstaller-windows.yml).
+Note: Pre-made executable available in the [releases](https://github.com/pfeerick/PinetimeFlasher/releases) when a new version is published, as well as [automatic builds by Github Actions](https://github.com/pfeerick/PinetimeFlasher/actions/workflows/pyinstaller-windows.yml).
